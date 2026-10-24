@@ -1,0 +1,122 @@
+/* ==========================================================================
+   Design tokens — every color, radius, space and font size lives here.
+   Change a value once and the whole app updates.
+   ========================================================================== */
+
+:root {
+  /* Surfaces */
+  --color-canvas: #ececee; /* page background behind the app frame */
+  --color-frame: #ffffff; /* the big rounded frame that holds the app */
+  --color-panel: #f7f7f8; /* sidebar, header and content panels */
+  --color-card: #ffffff; /* cards sitting on a panel */
+  --color-card-dark: #121214; /* the dark highlight card */
+  --color-on-dark: #ffffff;
+  --color-on-dark-muted: #b4b4bc;
+  --color-skeleton: #efeff2; /* empty chart bars, placeholders */
+
+  /* Text */
+  --color-ink: #111113;
+  --color-ink-muted: #6b6b73;
+  --color-ink-subtle: #8c8c95;
+
+  /* Lines */
+  --color-border: #e6e6ea;
+
+  /* Brand accents (taken from the reference: purple + orange + black) */
+  --color-primary: #7b61f5;
+  --color-primary-hover: #6a4eea;
+  --color-primary-300: #a594f9;
+  --color-primary-200: #cfc7fb;
+  --color-primary-soft: #efebfe;
+  --color-on-primary: #ffffff;
+  --color-accent: #ff9500;
+  --color-accent-strong: #ff6a13;
+  --color-accent-soft: #fff1de;
+
+  /* Feedback */
+  --color-success: #1f8a4c;
+  --color-success-soft: #e7f5ed;
+  --color-danger: #d23b3b;
+  --color-danger-soft: #fdeaea;
+  --color-warning: #b86e00;
+  --color-warning-soft: #fff1de;
+
+  /* Focus ring */
+  --color-focus: #7b61f5;
+
+  /* Radii — large and soft, like the reference */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --radius-frame: 40px;
+  --radius-pill: 999px;
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* Layout */
+  --sidebar-width: 17rem;
+  --frame-gap: 0.875rem;
+  --frame-margin: 1rem;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-display: clamp(2rem, 1.4rem + 2vw, 2.75rem);
+  --text-stat: clamp(2.25rem, 1.8rem + 1.4vw, 3rem);
+
+  /* Motion */
+  --transition-fast: 150ms ease;
+  --transition-base: 220ms ease;
+
+  /* Elevation (used sparingly — the reference is mostly flat) */
+  --shadow-drawer: 0 24px 60px rgba(17, 17, 19, 0.18);
+}
+
+/* Dark theme — switched on by <html data-theme="dark"> (wired up in Phase 8). */
+:root[data-theme='dark'] {
+  --color-canvas: #08080a;
+  --color-frame: #101013;
+  --color-panel: #17171b;
+  --color-card: #1f1f25;
+  --color-card-dark: #0a0a0c;
+  --color-on-dark: #f5f5f7;
+  --color-on-dark-muted: #a1a1ab;
+  --color-skeleton: #2a2a31;
+
+  --color-ink: #f4f4f6;
+  --color-ink-muted: #a3a3ad;
+  --color-ink-subtle: #82828c;
+
+  --color-border: #2c2c34;
+
+  --color-primary: #8c76ff;
+  --color-primary-hover: #a08dff;
+  --color-primary-300: #6d58d6;
+  --color-primary-200: #4a3d94;
+  --color-primary-soft: #2a2447;
+  --color-on-primary: #ffffff;
+  --color-accent-soft: #3a2a10;
+
+  --color-success: #4cc380;
+  --color-success-soft: #14301f;
+  --color-danger: #ff7272;
+  --color-danger-soft: #3a1717;
+  --color-warning: #ffb347;
+  --color-warning-soft: #3a2a10;
+
+  --color-focus: #a08dff;
+  --shadow-drawer: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
