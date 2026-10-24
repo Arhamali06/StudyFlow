@@ -12,8 +12,10 @@ interface TaskItemProps {
   /** Today as "YYYY-MM-DD", used to decide what is overdue. */
   today: string
   onToggle: (task: Task) => void
+  onOpen: (task: Task) => void
   onEdit: (task: Task) => void
   onDelete: (task: Task) => void
+  variant?: 'list' | 'board'
 }
 
 const PRIORITY_TONES: Record<TaskPriority, BadgeTone> = {
@@ -22,20 +24,47 @@ const PRIORITY_TONES: Record<TaskPriority, BadgeTone> = {
   low: 'neutral',
 }
 
-export default function TaskItem({ task, subject, today, onToggle, onEdit, onDelete }: TaskItemProps) {
+export default function TaskItem({
+  task,
+  subject,
+  today,
+  onToggle,
+  onOpen,
+  onEdit,
+  onDelete,
+  variant = 'list',
+}: TaskItemProps) {
   const isDone = task.status === 'completed'
   const due = getDueInfo(task, today)
 
-  const className = ['task-item', isDone && 'is-done', due.isOverdue && 'is-overdue']
+  const className = ['task-item', `task-item--${variant}`, isDone && 'is-done', due.isOverdue && 'is-overdue']
     .filter(Boolean)
     .join(' ')
 
   return (
-    <li className={className}>
+    <li
+      className={className}
+      tabIndex={0}
+      onClick={() => onOpen(task)}
+      onKeyDown={(event) => {
+        if (
+          event.target !== event.currentTarget &&
+          event.target instanceof HTMLElement &&
+          event.target.closest('button, input, select, textarea, a')
+        ) {
+          return
+        }
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault()
+          onOpen(task)
+        }
+      }}
+    >
       <label className="task-check">
         <input
           type="checkbox"
           checked={isDone}
+          onClick={(event) => event.stopPropagation()}
           onChange={() => onToggle(task)}
           aria-label={isDone ? `Mark “${task.title}” as pending` : `Mark “${task.title}” as completed`}
         />
@@ -57,15 +86,11 @@ export default function TaskItem({ task, subject, today, onToggle, onEdit, onDel
             {subject?.name ?? 'Unknown subject'}
           </span>
           <Badge>{TASK_TYPE_LABELS[task.type]}</Badge>
-          <span className={`task-item__due${due.isOverdue ? ' is-overdue' : ''}`}>
-            <CalendarDays size={14} aria-hidden="true" />
-            {due.label}
-          </span>
+          <Badge tone={PRIORITY_TONES[task.priority]}>{TASK_PRIORITY_LABELS[task.priority]}</Badge>
         </div>
       </div>
 
-      <div className="task-item__badges">
-        <Badge tone={PRIORITY_TONES[task.priority]}>{TASK_PRIORITY_LABELS[task.priority]} priority</Badge>
+      <div className="task-item__status">
         {isDone ? (
           <Badge tone="success">Completed</Badge>
         ) : due.isOverdue ? (
@@ -76,11 +101,19 @@ export default function TaskItem({ task, subject, today, onToggle, onEdit, onDel
         {task.isSample && <Badge>Sample</Badge>}
       </div>
 
+      <span className={`task-item__due${due.isOverdue ? ' is-overdue' : ''}`}>
+        <CalendarDays size={14} aria-hidden="true" />
+        {due.label}
+      </span>
+
       <div className="task-item__actions">
         <button
           type="button"
           className="icon-button icon-button--subtle icon-button--sm"
-          onClick={() => onEdit(task)}
+          onClick={(event) => {
+            event.stopPropagation()
+            onEdit(task)
+          }}
           aria-label={`Edit “${task.title}”`}
         >
           <Pencil size={16} aria-hidden="true" />
@@ -88,7 +121,10 @@ export default function TaskItem({ task, subject, today, onToggle, onEdit, onDel
         <button
           type="button"
           className="icon-button icon-button--subtle icon-button--sm icon-button--danger"
-          onClick={() => onDelete(task)}
+          onClick={(event) => {
+            event.stopPropagation()
+            onDelete(task)
+          }}
           aria-label={`Delete “${task.title}”`}
         >
           <Trash2 size={16} aria-hidden="true" />
