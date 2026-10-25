@@ -1411,3 +1411,80 @@
     grid-template-columns: auto minmax(0, 1fr) auto;
   }
 }
+
+/* Keep the Tasks board readable as its available width decreases. */
+.task-board {
+  min-width: 0;
+  overflow: visible;
+}
+
+.task-board__column {
+  min-width: 0;
+}
+
+.task-item--board {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'check main actions'
+    '. meta actions'
+    '. due actions'
+    '. status actions';
+  min-width: 0;
+  min-height: 0;
+}
+
+.task-item--board .task-item__main {
+  min-width: 0;
+}
+
+.task-item--board .task-item__title {
+  white-space: normal;
+}
+
+.task-item--board .task-item__meta,
+.task-item--board .task-item__status {
+  min-width: 0;
+}
+
+.task-item--board .task-item__meta {
+  grid-area: meta;
+}
+
+.task-item--board .task-item__status {
+  grid-area: status;
+  justify-content: flex-start;
+}
+
+.task-item--board .task-item__due {
+  grid-area: due;
+  justify-self: start;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.task-item--board .task-item__actions {
+  align-self: start;
+}
+
+@media (max-width: 74.99rem) {
+  .task-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 40rem) {
+  .task-board__column {
+    padding: var(--space-2);
+  }
+
+  .task-item--board {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--space-2);
+    padding: var(--space-3);
+  }
+
+  .task-item--board .task-item__actions {
+    margin: 0;
+  }
+}
