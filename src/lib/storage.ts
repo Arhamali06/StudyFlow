@@ -57,11 +57,14 @@ function writeJSON(key: string, value: unknown): boolean {
   }
 }
 
-function removeKey(key: string): void {
+function removeKey(key: string): boolean {
   try {
-    getStorage()?.removeItem(key)
+    const storage = getStorage()
+    if (!storage) return false
+    storage.removeItem(key)
+    return true
   } catch {
-    // nothing to do
+    return false
   }
 }
 
@@ -145,8 +148,8 @@ export function saveTheme(theme: ThemePreference): boolean {
 /* ----- Reset ----- */
 
 /** Removes saved tasks, subjects and name. The theme preference is kept on purpose. */
-export function clearStoredAppData(): void {
-  removeKey(STORAGE_KEYS.subjects)
-  removeKey(STORAGE_KEYS.tasks)
-  removeKey(STORAGE_KEYS.userName)
+export function clearStoredAppData(): boolean {
+  return [STORAGE_KEYS.subjects, STORAGE_KEYS.tasks, STORAGE_KEYS.userName]
+    .map(removeKey)
+    .every(Boolean)
 }

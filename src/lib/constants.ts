@@ -65,4 +65,4 @@ export const SUBJECT_NAME_MAX_LENGTH = 40
 export const USER_NAME_MAX_LENGTH = 40
 
 export const DEFAULT_USER_NAME = 'Student'
-export const DEFAULT_THEME = 'light' as const
+export const DEFAULT_THEME = 'system' as const

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
       content="StudyFlow is a personal study planner that helps students organize tasks, subjects, deadlines and progress."
@@ -19,7 +20,7 @@
       (function () {
         try {
           var saved = JSON.parse(localStorage.getItem('studyflow:v1:theme'));
-          var theme = saved === 'dark' || saved === 'system' ? saved : 'light';
+          var theme = saved === 'dark' || saved === 'light' || saved === 'system' ? saved : 'system';
           if (theme === 'system') {
             theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           }

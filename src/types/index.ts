@@ -104,7 +104,7 @@ export interface AppDataContextValue extends AppData {
   /** Adds clearly-marked sample subjects and tasks. Never runs automatically. */
   loadSampleData: () => ActionResult
   /** Deletes all tasks, subjects and the saved name. The theme is kept. */
-  clearAllData: () => void
+  clearAllData: () => boolean
 }
 
 /* ----- Theme ----- */

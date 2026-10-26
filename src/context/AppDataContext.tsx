@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useMemo, useReducer, type ReactNode } from 'react'
+import { createContext, useCallback, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react'
 import { z } from 'zod'
 import { appDataReducer } from './appDataReducer'
 import { DEFAULT_USER_NAME, USER_NAME_MAX_LENGTH } from '../lib/constants'
@@ -9,6 +9,8 @@ import {
   loadSubjects,
   loadTasks,
   loadUserName,
+  clearStoredAppData,
+  STORAGE_KEYS,
   saveSubjects,
   saveTasks,
   saveUserName,
@@ -46,19 +48,32 @@ function loadInitialData(): AppData {
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appDataReducer, undefined, loadInitialData)
+  const skipNextPersistence = useRef(false)
 
   // Save to localStorage whenever a piece of data changes.
   useEffect(() => {
+    if (skipNextPersistence.current) {
+      skipNextPersistence.current = false
+      return
+    }
     saveSubjects(state.subjects)
-  }, [state.subjects])
-
-  useEffect(() => {
     saveTasks(state.tasks)
-  }, [state.tasks])
+    saveUserName(state.userName)
+  }, [state])
 
   useEffect(() => {
-    saveUserName(state.userName)
-  }, [state.userName])
+    const handleStorage = (event: StorageEvent) => {
+      if (
+        event.key !== STORAGE_KEYS.subjects &&
+        event.key !== STORAGE_KEYS.tasks &&
+        event.key !== STORAGE_KEYS.userName
+      ) return
+      const subjects = loadSubjects()
+      dispatch({ type: 'data/replaced', state: { subjects, tasks: loadTasks(subjects), userName: loadUserName() } })
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => window.removeEventListener('storage', handleStorage)
+  }, [])
 
   /*
    * Each action below: (1) checks the rules, (2) builds a complete record,
@@ -196,7 +211,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, [state.subjects, state.tasks])
 
   const clearAllData = useCallback(() => {
+    skipNextPersistence.current = true
+    const stored = clearStoredAppData()
     dispatch({ type: 'data/cleared', defaultUserName: DEFAULT_USER_NAME })
+    return stored
   }, [])
 
   const value = useMemo<AppDataContextValue>(
