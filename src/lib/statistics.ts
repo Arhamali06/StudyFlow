@@ -1,6 +1,7 @@
 import {
   addDays,
   compareDateStrings,
+  getDayDifference,
   isValidTimestamp,
   parseDateString,
   toDateString,
@@ -296,4 +297,192 @@ export function getWeeklyTrend(
       count: countCompletionsInDays(tasks, days),
     }
   })
+}
+
+export type ProgressRange = 'week' | 'month' | 'threeMonths' | 'all'
+
+export interface DateRange {
+  start: string | null
+  end: string
+}
+
+export interface StreakSummary {
+  current: number
+  longest: number
+}
+
+export interface CompletionBreakdown {
+  label: string
+  count: number
+}
+
+export interface TypeProgressBreakdown {
+  label: string
+  completed: number
+  total: number
+}
+
+export interface PriorityProgressBreakdown {
+  label: string
+  completed: number
+  pending: number
+}
+
+export function getProgressDateRange(today: string, range: ProgressRange): DateRange {
+  if (range === 'all') return { start: null, end: '9999-12-31' }
+  const date = parseDateString(today)
+  if (!date) return { start: today, end: today }
+  const days = range === 'week' ? 6 : range === 'month' ? 29 : 89
+  return { start: toDateString(addDays(date, -days)), end: today }
+}
+
+export function isDateInRange(date: string, range: DateRange): boolean {
+  return (range.start === null || compareDateStrings(date, range.start) >= 0) &&
+    compareDateStrings(date, range.end) <= 0
+}
+
+function getCompletionDate(task: Task): string | null {
+  if (task.status !== 'completed' || !task.completedAt || !isValidTimestamp(task.completedAt)) {
+    return null
+  }
+  return toDateString(new Date(task.completedAt))
+}
+
+export function getRangeCompletedTasks(tasks: Task[], range: DateRange): Task[] {
+  return tasks.filter((task) => {
+    const completedDate = getCompletionDate(task)
+    return completedDate !== null && isDateInRange(completedDate, range)
+  })
+}
+
+export function getDueDateTasks(tasks: Task[], range: DateRange): Task[] {
+  return tasks.filter((task) => isDateInRange(task.dueDate, range))
+}
+
+export function getOnTimeCompletionRate(tasks: Task[], range: DateRange): number | null {
+  const completed = getRangeCompletedTasks(tasks, range)
+    .filter((task) => task.dueDate)
+  if (completed.length === 0) return null
+  const onTime = completed.filter((task) => {
+    const completedDate = getCompletionDate(task)
+    return completedDate !== null && compareDateStrings(completedDate, task.dueDate) <= 0
+  }).length
+  return calculatePercentage(onTime, completed.length)
+}
+
+export function getStreakSummary(tasks: Task[], today: string): StreakSummary {
+  const completedDays = new Set(
+    tasks.map(getCompletionDate).filter((date): date is string => date !== null),
+  )
+  const todayDate = parseDateString(today)
+  if (!todayDate) return { current: 0, longest: 0 }
+
+  let current = 0
+  let cursor = todayDate
+  while (completedDays.has(toDateString(cursor))) {
+    current += 1
+    cursor = addDays(cursor, -1)
+  }
+
+  const sorted = [...completedDays].sort(compareDateStrings)
+  let longest = 0
+  let run = 0
+  let previous: string | null = null
+  for (const day of sorted) {
+    if (previous && getDayDifference(previous, day) === 1) run += 1
+    else run = 1
+    longest = Math.max(longest, run)
+    previous = day
+  }
+  return { current, longest }
+}
+
+export function getBestCompletionWeek(tasks: Task[]): { weekStart: string | null; count: number } {
+  const counts = new Map<string, number>()
+  for (const task of tasks) {
+    const completedDate = getCompletionDate(task)
+    if (!completedDate) continue
+    const weekStart = getWeekDays(completedDate)[0]
+    counts.set(weekStart, (counts.get(weekStart) ?? 0) + 1)
+  }
+  let best: { weekStart: string | null; count: number } = { weekStart: null, count: 0 }
+  for (const [weekStart, count] of counts) {
+    if (count > best.count) best = { weekStart, count }
+  }
+  return best
+}
+
+export function getCompletionBreakdown(
+  tasks: Task[],
+  range: DateRange,
+  field: 'type' | 'priority',
+): CompletionBreakdown[] {
+  const counts = new Map<string, number>()
+  for (const task of getRangeCompletedTasks(tasks, range)) {
+    const key = task[field]
+    counts.set(key, (counts.get(key) ?? 0) + 1)
+  }
+
+  return [...counts.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
+export function getTypeProgressBreakdown(
+  dueTasks: Task[],
+  activityTasks: Task[],
+): TypeProgressBreakdown[] {
+  const counts = new Map<string, TypeProgressBreakdown>()
+  for (const task of dueTasks) {
+    const current = counts.get(task.type) ?? { label: task.type, completed: 0, total: 0 }
+    current.total += 1
+    counts.set(task.type, current)
+  }
+  for (const task of activityTasks) {
+    const current = counts.get(task.type) ?? { label: task.type, completed: 0, total: 0 }
+    current.completed += 1
+    counts.set(task.type, current)
+  }
+  return [...counts.values()].sort((a, b) => a.label.localeCompare(b.label))
+}
+
+export function getPriorityProgressBreakdown(
+  dueTasks: Task[],
+  activityTasks: Task[],
+): PriorityProgressBreakdown[] {
+  const order = ['high', 'medium', 'low']
+  return order.map((label) => ({
+    label,
+    completed: activityTasks.filter((task) => task.priority === label).length,
+    pending: dueTasks.filter((task) => task.priority === label && task.status === 'pending').length,
+  }))
+}
+
+export function getProductivityByWeekday(tasks: Task[], range: DateRange): CompletionBreakdown[] {
+  const labels = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const counts = labels.map((label) => ({ label, count: 0 }))
+  for (const task of getRangeCompletedTasks(tasks, range)) {
+    const completedDate = getCompletionDate(task)
+    const date = completedDate ? parseDateString(completedDate) : null
+    if (date) counts[date.getDay()].count += 1
+  }
+  return counts
+}
+
+export function getNextUpTask(tasks: Task[], today: string): Task | undefined {
+  const priorityRank = { high: 3, medium: 2, low: 1 } as const
+  return tasks
+    .filter((task) => task.status === 'pending')
+    .sort((a, b) => {
+      const urgency = (task: Task) =>
+        compareDateStrings(task.dueDate, today) < 0
+          ? 0
+          : task.dueDate === today
+            ? 1
+            : 2
+      return urgency(a) - urgency(b) ||
+        priorityRank[b.priority] - priorityRank[a.priority] ||
+        compareDateStrings(a.dueDate, b.dueDate) ||
+        a.title.localeCompare(b.title)
+    })[0]
 }

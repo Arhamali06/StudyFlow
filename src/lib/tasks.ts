@@ -1,4 +1,4 @@
-import { compareDateStrings, formatDate, getDayDifference } from './dates'
+import { compareDateStrings, formatDate, getDayDifference, getTodayString } from './dates'
 import type {
   Task,
   TaskChanges,
@@ -65,6 +65,7 @@ export function filterTasks(tasks: Task[], filters: TaskFilterState): Task[] {
     if (filters.priority !== 'all' && task.priority !== filters.priority) return false
     if (filters.type !== 'all' && task.type !== filters.type) return false
     if (filters.tab !== 'all' && task.status !== filters.tab) return false
+    if (filters.overdue && !isTaskOverdue(task, getTodayString())) return false
     return true
   })
 }

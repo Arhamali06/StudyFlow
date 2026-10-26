@@ -11,6 +11,9 @@
 html {
   -webkit-text-size-adjust: 100%;
   color-scheme: light;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-subtle) transparent;
 }
 
 html[data-theme='dark'] {
@@ -27,6 +30,37 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  scrollbar-gutter: stable;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+[data-scroll-container]::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track,
+[data-scroll-container]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb,
+[data-scroll-container]::-webkit-scrollbar-thumb {
+  min-height: 2rem;
+  border: 3px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--color-ink-subtle);
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover,
+[data-scroll-container]::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-muted);
+  background-clip: padding-box;
 }
 
 h1,

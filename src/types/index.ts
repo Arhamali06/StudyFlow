@@ -70,6 +70,7 @@ export interface TaskFilterState {
   priority: TaskPriority | 'all'
   type: TaskType | 'all'
   tab: TaskTab
+  overdue: boolean
 }
 
 /* ----- Shared app state ----- */

@@ -18,6 +18,7 @@ const PARAM_NAMES = {
   priority: 'priority',
   type: 'type',
   tab: 'tab',
+  overdue: 'overdue',
   sort: 'sort',
 } as const
 
@@ -41,6 +42,7 @@ export function useTaskFilters(subjects: Subject[]) {
       priority: pickOption(params.get(PARAM_NAMES.priority), [...TASK_PRIORITIES, 'all'], 'all'),
       type: pickOption(params.get(PARAM_NAMES.type), [...TASK_TYPES, 'all'], 'all'),
       tab: pickOption(params.get(PARAM_NAMES.tab), TASK_TABS, 'all'),
+      overdue: params.get(PARAM_NAMES.overdue) === 'true',
     }
   }, [params, subjects])
 
@@ -52,7 +54,7 @@ export function useTaskFilters(subjects: Subject[]) {
 
       for (const [key, value] of Object.entries(updates)) {
         const name = PARAM_NAMES[key as keyof typeof PARAM_NAMES]
-        const isDefault = value === '' || value === 'all' || value === DEFAULT_SORT
+        const isDefault = value === '' || value === 'all' || value === DEFAULT_SORT || value === false
         if (isDefault) next.delete(name)
         else next.set(name, String(value))
       }
@@ -70,6 +72,7 @@ export function useTaskFilters(subjects: Subject[]) {
     filters.priority !== 'all' ||
     filters.type !== 'all' ||
     filters.tab !== 'all'
+    || filters.overdue
 
   return { filters, sort, updateFilters, resetFilters, hasActiveFilters }
 }

@@ -1,10 +1,10 @@
-import { useState, type CSSProperties } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import type { CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import Badge from '../ui/Badge'
 import { getDueInfo } from '../../lib/tasks'
 import type { Subject, Task } from '../../types'
 
-const PAGE_SIZE = 3
+const PAGE_SIZE = 5
 
 interface UpcomingDeadlinesProps {
   tasks: Task[]
@@ -17,13 +17,7 @@ export default function UpcomingDeadlines({
   subjects,
   today,
 }: UpcomingDeadlinesProps) {
-  const [page, setPage] = useState(0)
-
-  // Clamp page when the list shrinks — derived during render, no effect needed.
-  const lastPage = Math.max(0, Math.ceil(tasks.length / PAGE_SIZE) - 1)
-  const currentPage = Math.min(page, lastPage)
-  const start = currentPage * PAGE_SIZE
-  const visible = tasks.slice(start, start + PAGE_SIZE)
+  const visible = tasks.slice(0, PAGE_SIZE)
 
   return (
     <section className="card" aria-labelledby="deadlines-title">
@@ -34,28 +28,7 @@ export default function UpcomingDeadlines({
           </h2>
           <p className="card__subtitle">What's coming up next</p>
         </div>
-        {lastPage > 0 && (
-          <div className="dash-deadlines__pager">
-            <button
-              type="button"
-              className="icon-button icon-button--subtle icon-button--sm"
-              onClick={() => setPage(currentPage - 1)}
-              disabled={currentPage === 0}
-              aria-label="Previous deadlines"
-            >
-              <ChevronLeft size={18} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className="icon-button icon-button--subtle icon-button--sm"
-              onClick={() => setPage(currentPage + 1)}
-              disabled={currentPage >= lastPage}
-              aria-label="Next deadlines"
-            >
-              <ChevronRight size={18} aria-hidden="true" />
-            </button>
-          </div>
-        )}
+        <Link className="dash-widget-link" to="/calendar">View calendar</Link>
       </div>
 
       {tasks.length === 0 ? (
@@ -77,13 +50,11 @@ export default function UpcomingDeadlines({
                   }
                   aria-hidden="true"
                 />
-                <div className="dash-deadlines__text">
-                  <span className="dash-deadlines__title">{task.title}</span>
-                  <span className="dash-deadlines__due">
-                    {due.label}
-                    {task.isSample && <Badge>Sample</Badge>}
-                  </span>
-                </div>
+                <span className="dash-deadlines__title">{task.title}</span>
+                <span className="dash-deadlines__due">
+                  {due.label}
+                  {task.isSample && <Badge>Sample</Badge>}
+                </span>
               </li>
             )
           })}

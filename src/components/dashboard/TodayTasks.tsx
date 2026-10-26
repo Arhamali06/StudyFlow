@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Check } from 'lucide-react'
+import { Check, ClipboardCheck } from 'lucide-react'
 import Badge from '../ui/Badge'
 import { getDueInfo, isTaskOverdue } from '../../lib/tasks'
 import type { Subject, Task } from '../../types'
@@ -20,7 +20,10 @@ export default function TodayTasks({ tasks, subjects, today, onToggle }: TodayTa
       <p className="card__subtitle">What needs your attention today</p>
 
       {tasks.length === 0 ? (
-        <p className="dash-today__empty">Nothing due today — enjoy your free time!</p>
+        <div className="dash-today__empty">
+          <ClipboardCheck size={22} aria-hidden="true" />
+          <p>Nothing due today — enjoy your free time!</p>
+        </div>
       ) : (
         <ul className="dash-today__list">
           {tasks.map((task) => {

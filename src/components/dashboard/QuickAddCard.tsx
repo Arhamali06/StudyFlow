@@ -12,11 +12,13 @@ export default function QuickAddCard({
   onAddTask,
 }: QuickAddCardProps) {
   return (
-    <section className="card card--dark" aria-labelledby="quick-add-title">
-      <h2 id="quick-add-title" className="card__title">
-        Quick add task
-      </h2>
-      <p className="card__subtitle">Create a task in two clicks from here.</p>
+    <section className="card card--dark dash-quick" aria-labelledby="quick-add-title">
+      <div className="dash-quick__copy">
+        <h2 id="quick-add-title" className="card__title">
+          Quick add task
+        </h2>
+        <p className="card__subtitle">Create a task in two clicks.</p>
+      </div>
       <div className="dash-quick__action">
         {hasSubjects ? (
           <Button

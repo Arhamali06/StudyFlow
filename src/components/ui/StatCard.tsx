@@ -11,13 +11,14 @@ interface StatCardProps {
   /** Small text next to the number, e.g. "tasks". */
   unit?: string
   label: string
+  detail?: string
   /** When set, the whole card becomes a link to this path. */
   href?: string
   /** Accessible name for the link, e.g. "Overdue: 3 tasks, view tasks". */
   linkLabel?: string
 }
 
-export default function StatCard({ icon: Icon, tone, value, unit, label, href, linkLabel }: StatCardProps) {
+export default function StatCard({ icon: Icon, tone, value, unit, label, detail, href, linkLabel }: StatCardProps) {
   return (
     <article className={`card stat-card${href ? ' stat-card--linked' : ''}`}>
       <span className={`icon-tile icon-tile--${tone}`}>
@@ -28,6 +29,7 @@ export default function StatCard({ icon: Icon, tone, value, unit, label, href, l
         {unit && <span className="stat-card__unit">{unit}</span>}
       </p>
       <p className="stat-card__label">{label}</p>
+      {detail && <p className="stat-card__detail">{detail}</p>}
       {href && (
         <Link to={href} className="stat-card__link" aria-label={linkLabel ?? label} />
       )}
