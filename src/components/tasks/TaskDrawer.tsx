@@ -16,6 +16,7 @@ export default function TaskDrawer({ task, initialValues, onClose }: TaskDrawerP
   const { subjects, addTask, updateTask } = useAppData()
   const { showToast } = useToast()
   const drawerRef = useRef<HTMLDialogElement>(null)
+  const pressStartedOnBackdrop = useRef(false)
   const titleId = useId()
 
   useEffect(() => {
@@ -53,7 +54,10 @@ export default function TaskDrawer({ task, initialValues, onClose }: TaskDrawerP
         onClose()
       }}
       onClick={(event) => {
-        if (event.target === event.currentTarget) onClose()
+        if (event.target === event.currentTarget && pressStartedOnBackdrop.current) onClose()
+      }}
+      onMouseDown={(event) => {
+        pressStartedOnBackdrop.current = event.target === event.currentTarget
       }}
     >
       <div className="task-drawer__panel">

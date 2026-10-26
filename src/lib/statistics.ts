@@ -204,3 +204,96 @@ export function getUpcomingTasks(tasks: Task[], today: string): Task[] {
     )
     .sort((a, b) => compareDateStrings(a.dueDate, b.dueDate))
 }
+
+export interface OverallProgress {
+  total: number
+  completed: number
+  percent: number
+}
+
+export function getOverallProgress(tasks: Task[]): OverallProgress {
+  const completed = tasks.filter((task) => task.status === 'completed').length
+  return { total: tasks.length, completed, percent: calculatePercentage(completed, tasks.length) }
+}
+
+export interface DetailedSubjectProgress extends SubjectProgress {
+  overdue: number
+}
+
+export function getDetailedSubjectProgressMap(
+  tasks: Task[],
+  today: string,
+): Map<string, DetailedSubjectProgress> {
+  const result = new Map<string, DetailedSubjectProgress>()
+  for (const task of tasks) {
+    const current = result.get(task.subjectId) ?? {
+      total: 0,
+      completed: 0,
+      pending: 0,
+      percent: 0,
+      overdue: 0,
+    }
+    current.total += 1
+    if (task.status === 'completed') current.completed += 1
+    else {
+      current.pending += 1
+      if (compareDateStrings(task.dueDate, today) < 0) current.overdue += 1
+    }
+    current.percent = calculatePercentage(current.completed, current.total)
+    result.set(task.subjectId, current)
+  }
+  return result
+}
+
+export interface WeeklySummary {
+  days: DayCompletion[]
+  total: number
+  previousTotal: number
+  changePercent: number | null
+}
+
+export function getWeeklySummary(tasks: Task[], today: string): WeeklySummary {
+  const days = getWeekDays(today)
+  const previousDate = parseDateString(today)
+  const previousWeekDays = previousDate
+    ? getWeekDays(toDateString(addDays(previousDate, -7)))
+    : []
+  const currentDays = getCompletionsPerDay(tasks, days, today)
+  const total = countCompletionsInDays(tasks, days)
+  const previousTotal = countCompletionsInDays(tasks, previousWeekDays)
+  return {
+    days: currentDays,
+    total,
+    previousTotal,
+    changePercent: getWeeklyChangePercent(total, previousTotal),
+  }
+}
+
+export interface WeeklyTrendPoint {
+  weekStart: string
+  label: string
+  count: number
+}
+
+export function getWeeklyTrend(
+  tasks: Task[],
+  today: string,
+  weeks = 8,
+): WeeklyTrendPoint[] {
+  const date = parseDateString(today)
+  if (!date || weeks <= 0) return []
+  const currentSunday = getWeekDays(today)[0]
+  const currentSundayDate = parseDateString(currentSunday)
+  if (!currentSundayDate) return []
+
+  return Array.from({ length: weeks }, (_, index) => {
+    const weekStartDate = addDays(currentSundayDate, (index - weeks + 1) * 7)
+    const weekStart = toDateString(weekStartDate)
+    const days = getWeekDays(weekStart)
+    return {
+      weekStart,
+      label: weekStartDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      count: countCompletionsInDays(tasks, days),
+    }
+  })
+}

@@ -131,6 +131,17 @@ export function formatCalendarDay(date: string): string {
     : date
 }
 
+export function formatShortCalendarDay(date: string): string {
+  const parsed = parseDateString(date)
+  return parsed
+    ? parsed.toLocaleDateString(undefined, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      })
+    : date
+}
+
 export function getCalendarDayLabel(date: string, tasks: Task[], today: string): string {
   const parsed = parseDateString(date)
   if (!parsed) return date

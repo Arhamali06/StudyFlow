@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import { useEffect, useRef, type CSSProperties, type KeyboardEvent } from 'react'
 import { AlertCircle, ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   formatCalendarMonth,
   getCalendarDayLabel,
   getMonthGrid,
   getMonthTaskCount,
-  getTaskIndicatorSubjects,
   moveCalendarDate,
+  sortDayTasks,
   type CalendarNavigationKey,
 } from '../../lib/calendar'
 import { isTaskOverdue } from '../../lib/tasks'
@@ -30,15 +30,16 @@ export default function CalendarMonth({
   onSelectDate,
 }: CalendarMonthProps) {
   const grid = getMonthGrid(selectedDate)
-  const [focusDate, setFocusDate] = useState<string | null>(null)
+  const pendingFocusDate = useRef<string | null>(null)
   const dayRefs = useRef(new Map<string, HTMLButtonElement>())
   const grouped = new Map<string, Task[]>()
   tasks.forEach((task) => grouped.set(task.dueDate, [...(grouped.get(task.dueDate) ?? []), task]))
 
   useEffect(() => {
-    if (!focusDate) return
-    dayRefs.current.get(focusDate)?.focus()
-  }, [focusDate, selectedDate])
+    if (!pendingFocusDate.current) return
+    dayRefs.current.get(pendingFocusDate.current)?.focus()
+    pendingFocusDate.current = null
+  }, [selectedDate])
 
   function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, date: string) {
     if (event.ctrlKey || event.altKey || event.metaKey) return
@@ -48,12 +49,17 @@ export default function CalendarMonth({
     }
     event.preventDefault()
     const nextDate = moveCalendarDate(date, key, event.shiftKey)
-    setFocusDate(nextDate)
+    pendingFocusDate.current = nextDate
     onSelectDate(nextDate, true)
   }
 
+  function handleSelectDate(date: string, fromGrid: boolean) {
+    pendingFocusDate.current = fromGrid ? date : null
+    onSelectDate(date, fromGrid)
+  }
+
   function moveFromToolbar(offset: number) {
-    onSelectDate(moveCalendarDate(selectedDate, offset < 0 ? 'PageUp' : 'PageDown'), false)
+    handleSelectDate(moveCalendarDate(selectedDate, offset < 0 ? 'PageUp' : 'PageDown'), false)
   }
 
   return (
@@ -62,14 +68,15 @@ export default function CalendarMonth({
         <div>
           <h2 className="calendar-month-title">{formatCalendarMonth(grid.year, grid.month)}</h2>
           <p className="calendar-month-count">
-            {getMonthTaskCount(tasks, grid.year, grid.month)} tasks due this month
+            {getMonthTaskCount(tasks, grid.year, grid.month)}{' '}
+            {getMonthTaskCount(tasks, grid.year, grid.month) === 1 ? 'task' : 'tasks'} due this month
           </p>
         </div>
         <div className="calendar-month-actions">
           <button type="button" className="icon-button icon-button--subtle icon-button--sm" onClick={() => moveFromToolbar(-1)} aria-label="Previous month">
             <ChevronLeft size={18} aria-hidden="true" />
           </button>
-          <button type="button" className="btn btn--secondary btn--sm" onClick={() => onSelectDate(today, false)}>
+          <button type="button" className="btn btn--secondary btn--sm" onClick={() => handleSelectDate(today, false)}>
             Today
           </button>
           <button type="button" className="icon-button icon-button--subtle icon-button--sm" onClick={() => moveFromToolbar(1)} aria-label="Next month">
@@ -88,7 +95,7 @@ export default function CalendarMonth({
           <div key={row} className="calendar-grid__row" role="row">
             {grid.days.slice(row * 7, row * 7 + 7).map((day) => {
               const dayTasks = grouped.get(day.date) ?? []
-              const daySubjects = getTaskIndicatorSubjects(dayTasks, subjects)
+              const indicatorTasks = sortDayTasks(dayTasks).slice(0, 3)
               const overdue = dayTasks.some((task) => isTaskOverdue(task, today))
               return (
                 <div key={day.date} className="calendar-grid__cell" role="gridcell" aria-selected={day.date === selectedDate}>
@@ -103,19 +110,23 @@ export default function CalendarMonth({
                     aria-current={day.date === today ? 'date' : undefined}
                     aria-label={getCalendarDayLabel(day.date, dayTasks, today)}
                     data-more={dayTasks.length > 3 ? `+${dayTasks.length - 3}` : undefined}
-                    onClick={() => onSelectDate(day.date, true)}
+                    onClick={() => handleSelectDate(day.date, true)}
                     onKeyDown={(event) => handleKeyDown(event, day.date)}
                   >
                     <span className="calendar-day__number">{day.day}</span>
                     {dayTasks.length > 0 && (
                       <span className="calendar-day__indicators" aria-hidden="true">
-                        {daySubjects.map((subject, index) => (
-                          <i
-                            key={`${day.date}-${subject.id}-${index}`}
-                            className={`calendar-day__dot${dayTasks[index]?.status === 'completed' ? ' is-completed' : ''}`}
-                            style={{ '--subject-color': subject.color } as CSSProperties}
-                          />
-                        ))}
+                        {indicatorTasks.map((task, index) => {
+                          const subject = subjects.get(task.subjectId)
+                          if (!subject) return null
+                          return (
+                            <i
+                              key={`${day.date}-${subject.id}-${index}`}
+                              className={`calendar-day__dot${task.status === 'completed' ? ' is-completed' : ''}`}
+                              style={{ '--subject-color': subject.color } as CSSProperties}
+                            />
+                          )
+                        })}
                       </span>
                     )}
                     {overdue && <AlertCircle className="calendar-day__overdue" size={13} aria-hidden="true" />}

@@ -17,6 +17,7 @@ import { useToast } from '../hooks/useToast'
 import { useToday } from '../hooks/useToday'
 import { countTasksByTab, filterTasks, sortTasks } from '../lib/tasks'
 import { addDays, compareDateStrings, getDayDifference, toDateString } from '../lib/dates'
+import { formatShortCalendarDay } from '../lib/calendar'
 import type { Task } from '../types'
 
 type TaskGroupKey = 'overdue' | 'today' | 'week' | 'later' | 'completed'
@@ -119,6 +120,12 @@ export default function TasksPage() {
     else if (result.data.status === 'completed') showToast(`Completed “${task.title}”`)
   }
 
+  function handleLoadSample() {
+    const result = loadSampleData()
+    if (result.ok) showToast('Sample data loaded')
+    else showToast(result.error, 'error')
+  }
+
   function handleConfirmDelete(task: Task) {
     const result = deleteTask(task.id)
     setDeletingId(null)
@@ -167,7 +174,7 @@ export default function TasksPage() {
                 <Link className="btn btn--primary btn--md" to="/subjects">
                   Go to subjects
                 </Link>
-                <Button variant="secondary" onClick={() => loadSampleData()}>
+                <Button variant="secondary" onClick={handleLoadSample}>
                   Load sample data
                 </Button>
               </div>
@@ -278,7 +285,7 @@ export default function TasksPage() {
                 <h2>Due this week</h2>
                 {weekTasks.length ? (
                   <ul className="task-side-list">
-                    {weekTasks.map((task) => <li key={task.id}><span>{task.title}</span><small>{task.dueDate}</small></li>)}
+                    {weekTasks.map((task) => <li key={task.id}><span>{task.title}</span><small>{formatShortCalendarDay(task.dueDate)}</small></li>)}
                   </ul>
                 ) : <p className="card__placeholder">Nothing due this week.</p>}
               </section>

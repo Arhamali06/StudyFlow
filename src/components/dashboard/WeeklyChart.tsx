@@ -117,7 +117,11 @@ export default function WeeklyChart({ data, weeklyTotal, weeklyChange }: WeeklyC
           aria-label={`Weekly completion chart: ${weeklyTotal} tasks completed this week`}
         >
           <ResponsiveContainer width="100%" height="100%" minHeight={200}>
-            <BarChart data={data} margin={{ top: 8, right: 0, bottom: 0, left: 0 }}>
+            <BarChart
+              data={data}
+              accessibilityLayer={false}
+              margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
+            >
               <XAxis
                 dataKey="dayLabel"
                 axisLine={false}

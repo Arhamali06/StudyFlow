@@ -1488,3 +1488,27 @@
     margin: 0;
   }
 }
+
+/* Final accessibility and narrow-content safeguards. */
+.calendar-day.is-outside {
+  color: var(--color-ink-muted);
+}
+
+.task-item__meta {
+  min-width: 0;
+}
+
+.task-item .subject-chip {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.task-filter-select {
+  flex: 1 1 0;
+}
+
+.task-filter-select .select {
+  min-width: 0;
+  max-width: 100%;
+}

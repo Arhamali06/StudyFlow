@@ -38,7 +38,11 @@ export default function DayPanel({
       <div className="day-panel__header">
         <div>
           <h2 id="selected-day-title">{formatCalendarDay(selectedDate)}</h2>
-          <p>{summary.tasks.length} {summary.tasks.length === 1 ? 'task' : 'tasks'} · {summary.overdue} overdue</p>
+          <p>
+            {summary.tasks.length === 0
+              ? 'No tasks'
+              : `${summary.tasks.length} ${summary.tasks.length === 1 ? 'task' : 'tasks'} · ${summary.overdue} overdue`}
+          </p>
         </div>
         {subjects.length > 0 && (
           <Button size="sm" icon={<Plus size={16} aria-hidden="true" />} onClick={onAddTask}>

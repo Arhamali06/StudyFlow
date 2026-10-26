@@ -70,7 +70,11 @@ export default function TaskFilters({
 
         <div className={`task-toolbar__selects${showFilters ? ' is-open' : ''}`}>
           <label className="task-filter-select">
-            <Select value={filters.subjectId} onChange={(event) => onChange({ subjectId: event.target.value })}>
+            <Select
+              aria-label="Filter tasks by subject"
+              value={filters.subjectId}
+              onChange={(event) => onChange({ subjectId: event.target.value })}
+            >
               <option value="all">Subject: All</option>
               {subjects.map((subject) => (
                 <option key={subject.id} value={subject.id}>
@@ -82,6 +86,7 @@ export default function TaskFilters({
 
           <label className="task-filter-select">
             <Select
+              aria-label="Filter tasks by priority"
               value={filters.priority}
               onChange={(event) => onChange({ priority: event.target.value as TaskFilterState['priority'] })}
             >
@@ -96,6 +101,7 @@ export default function TaskFilters({
 
           <label className="task-filter-select">
             <Select
+              aria-label="Filter tasks by task type"
               value={filters.type}
               onChange={(event) => onChange({ type: event.target.value as TaskFilterState['type'] })}
             >
@@ -109,7 +115,11 @@ export default function TaskFilters({
           </label>
 
           <label className="task-filter-select">
-            <Select value={sort} onChange={(event) => onChange({ sort: event.target.value as TaskSort })}>
+            <Select
+              aria-label="Sort tasks"
+              value={sort}
+              onChange={(event) => onChange({ sort: event.target.value as TaskSort })}
+            >
               {TASK_SORTS.map((option) => (
                 <option key={option} value={option}>
                   Sort: {TASK_SORT_LABELS[option]}
