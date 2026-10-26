@@ -28,7 +28,7 @@
 }
 
 .btn--md {
-  min-height: 2.75rem;
+  min-height: var(--touch-target);
   padding: 0 var(--space-5);
   font-size: var(--text-sm);
 }
@@ -90,8 +90,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: var(--touch-target);
+  height: var(--touch-target);
   flex-shrink: 0;
   border: 0;
   border-radius: var(--radius-pill);
@@ -168,7 +168,7 @@
 /* ----- Cards ----- */
 
 .card {
-  padding: var(--space-6);
+  padding: var(--card-padding);
   border-radius: var(--radius-lg);
   background: var(--color-card);
 }
@@ -772,8 +772,8 @@
 
 .toast-viewport {
   position: fixed;
-  right: var(--space-4);
-  bottom: var(--space-4);
+  right: max(var(--space-4), env(safe-area-inset-right));
+  bottom: max(var(--space-4), env(safe-area-inset-bottom));
   z-index: 200;
   display: flex;
   flex-direction: column;
@@ -843,6 +843,13 @@
   .toast-viewport {
     right: 50%;
     transform: translateX(50%);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .icon-button--sm {
+    width: var(--touch-target);
+    height: var(--touch-target);
   }
 }
 

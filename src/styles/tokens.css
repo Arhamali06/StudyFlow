@@ -61,11 +61,18 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
 
   /* Layout */
   --sidebar-width: 17rem;
   --frame-gap: 0.875rem;
   --frame-margin: 1rem;
+  --page-padding: clamp(var(--space-3), 2vw, var(--space-8));
+  --layout-gap: clamp(var(--space-3), 1.5vw, var(--space-5));
+  --card-padding: clamp(var(--space-4), 1.5vw, var(--space-6));
+  --content-max-width: 96rem;
+  --touch-target: 2.75rem;
 
   /* Typography */
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;

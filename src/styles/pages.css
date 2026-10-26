@@ -39,6 +39,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .settings-card__heading {
@@ -89,7 +92,7 @@
 }
 
 .split-grid > .card {
-  min-height: 11rem;
+  min-height: 0;
 }
 
 /* ----- Action-focused dashboard ----- */
@@ -113,6 +116,9 @@
 .dashboard-action-layout__left > .card,
 .dashboard-action-layout__right > .card {
   min-height: 0;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dash-widget-header {
@@ -414,12 +420,13 @@
 
 .subject-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   gap: var(--space-4);
 }
 
 .subject-grid > li {
   display: flex;
+  min-width: 0;
 }
 
 .subject-card {
@@ -428,6 +435,8 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-5);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .subject-card__top {
@@ -673,6 +682,13 @@
 
 .tasks-main {
   min-width: 0;
+}
+
+.tasks-main > .card,
+.tasks-main > .task-board {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .task-side-panel {
@@ -1441,6 +1457,8 @@
 .calendar-month-card,
 .day-panel {
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .calendar-month-card {
@@ -1508,7 +1526,7 @@
   align-items: center;
   justify-content: flex-start;
   width: 100%;
-  min-height: 5.25rem;
+  min-height: clamp(3.25rem, 8vw, 5.25rem);
   padding: var(--space-2);
   border: 2px solid transparent;
   border-radius: var(--radius-md);
@@ -2069,6 +2087,16 @@
   min-width: 0;
 }
 
+/* A stack owns its full column width. This remains necessary below 1120px,
+   where .progress-column becomes display: contents for the ordered mobile flow. */
+.progress-column > .card,
+.progress-column > .progress-section,
+.progress-columns > .progress-column > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .progress-chart-card {
   min-height: 0;
 }
@@ -2209,10 +2237,19 @@
   .progress-columns {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
   }
 
   .progress-column {
     display: contents;
+  }
+
+  .progress-columns > .card,
+  .progress-columns > .progress-section,
+  .progress-columns > .progress-column > * {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .progress-columns .progress-column:first-child > .progress-chart-card {
@@ -2298,7 +2335,7 @@
 }
 
 .progress-stats .stat-card {
-  height: 100%;
+  height: auto;
 }
 
 .stat-card__detail {

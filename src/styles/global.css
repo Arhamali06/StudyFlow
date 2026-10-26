@@ -33,6 +33,11 @@ body {
   scrollbar-gutter: stable;
 }
 
+body.is-drawer-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 html::-webkit-scrollbar,
 body::-webkit-scrollbar,
 [data-scroll-container]::-webkit-scrollbar {
@@ -93,6 +98,13 @@ textarea {
 
 button {
   cursor: pointer;
+  touch-action: manipulation;
+}
+
+input,
+select,
+textarea {
+  font-size: max(1rem, var(--text-base));
 }
 
 img,

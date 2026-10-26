@@ -130,10 +130,15 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--space-5);
-  padding: clamp(var(--space-5), 3vw, var(--space-10));
+  gap: var(--layout-gap);
+  padding: var(--page-padding);
   border-radius: var(--radius-xl);
   background: var(--color-panel);
+}
+
+.app-content > * {
+  width: min(100%, var(--content-max-width));
+  margin-inline: auto;
 }
 
 /* ----- Mobile drawer overlay ----- */
@@ -162,7 +167,10 @@
     inset: 0 auto 0 0;
     z-index: 50;
     width: min(18rem, 85vw);
+    height: 100vh;
     height: 100dvh;
+    max-height: 100svh;
+    padding-bottom: max(var(--space-6), env(safe-area-inset-bottom));
     border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
     background: var(--color-card);
     box-shadow: var(--shadow-drawer);
@@ -199,6 +207,18 @@
   .sidebar-overlay.is-visible {
     opacity: 1;
     pointer-events: auto;
+  }
+}
+
+@media (min-width: 96rem) {
+  .app-content {
+    padding-inline: clamp(var(--space-8), 3vw, var(--space-12));
+  }
+}
+
+@media (max-height: 30rem) and (max-width: 64rem) {
+  .sidebar {
+    overflow-y: auto;
   }
 }
 

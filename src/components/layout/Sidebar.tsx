@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { NavLink } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { NAV_GROUPS } from './navigation'
@@ -24,12 +25,14 @@ function BrandMark() {
   )
 }
 
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen, onClose }, ref) {
   return (
     <aside
+      ref={ref}
       id="app-sidebar"
       className={`sidebar${isOpen ? ' is-open' : ''}`}
       aria-label="Sidebar"
+      aria-modal={isOpen || undefined}
     >
       <div className="sidebar__top">
         <div className="brand">
@@ -70,4 +73,6 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       </nav>
     </aside>
   )
-}
+})
+
+export default Sidebar
