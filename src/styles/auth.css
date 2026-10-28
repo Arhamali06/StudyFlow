@@ -1,0 +1,855 @@
+/* ==========================================================================
+   Authentication — Log in and Sign up screens.
+
+   Layout modes
+   - Desktop (900px and up): two panels (dark hero + white form card) that fit
+     exactly inside the viewport. Sizes use vh-based clamp() so the page never
+     gets a scrollbar of its own, even on short laptop screens.
+   - Tablet / phone (below 900px): one column. A dark header sits on top and the
+     form card overlaps it. On phones the card runs to the bottom edge of the
+     screen so there is no empty space below it.
+   ========================================================================== */
+
+/* The app reserves a scrollbar gutter on <html>; these full-screen pages must not. */
+html.is-auth-page,
+html.is-auth-page body {
+  scrollbar-gutter: auto;
+}
+
+.auth-page {
+  /* Theme-aware surfaces. The hero stays dark in both themes. */
+  --auth-canvas: var(--color-canvas);
+  --auth-frame: var(--color-frame);
+  --auth-panel: var(--color-panel);
+  --auth-card: var(--color-card);
+  --auth-hero: var(--color-card-dark);
+  --auth-field-bg: #f6f6f6;
+  --auth-field-border: #e2e2e5;
+  --auth-link: #5b3fe0;
+  --auth-button: #111113;
+  --auth-button-hover: #303034;
+  --auth-page-pad: clamp(8px, 1.6vh, 24px);
+
+  height: 100dvh;
+  padding: var(--auth-page-pad);
+  overflow: hidden;
+  background: var(--auth-canvas);
+  color: var(--color-ink);
+}
+
+:root[data-theme='dark'] .auth-page {
+  --auth-field-bg: #26262d;
+  --auth-field-border: #35353d;
+  --auth-link: var(--color-primary);
+  --auth-button: #775eee;
+  --auth-button-hover: #6a4eea;
+}
+
+/* ----- Shell: the big rounded frame ----- */
+
+.auth-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  gap: clamp(10px, 2vh, 22px);
+  height: 100%;
+  padding: 12px;
+  overflow: hidden;
+  border-radius: var(--radius-frame);
+  background: var(--auth-frame);
+}
+
+/* ----- Hero (left, dark) ----- */
+
+.auth-hero {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(24px, 5vh, 64px) clamp(28px, 4.4vw, 64px);
+  overflow: hidden;
+  border-radius: 36px;
+  background: var(--auth-hero);
+  color: #fff;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vh, 18px);
+  font-size: clamp(1.375rem, 3vh, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+}
+
+.auth-brand__mark {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: clamp(44px, 6.6vh, 64px);
+  height: clamp(44px, 6.6vh, 64px);
+  border-radius: 18px;
+  background: #fff;
+  color: #111113;
+}
+
+.auth-brand__mark svg {
+  width: 45%;
+  height: 45%;
+}
+
+.auth-brand__mark i {
+  position: absolute;
+  top: 14%;
+  right: 14%;
+  width: 17%;
+  height: 17%;
+  border-radius: 50%;
+  background: #ff9500;
+}
+
+.auth-hero__copy {
+  margin-top: clamp(28px, 8vh, 112px);
+}
+
+.auth-hero h1 {
+  max-width: 650px;
+  font-size: clamp(2rem, min(4vw, 6.4vh), 4rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 1.08;
+}
+
+.auth-hero h1 span {
+  display: block;
+}
+
+.auth-hero__copy p {
+  max-width: 590px;
+  margin-top: clamp(12px, 2.4vh, 28px);
+  color: #aaaab3;
+  font-size: clamp(0.95rem, min(1.3vw, 2.2vh), 1.25rem);
+  line-height: 1.7;
+}
+
+/* Weekly bars. They absorb spare height (up to 275px) so the hero always fits. */
+.auth-chart {
+  display: flex;
+  flex: 1 1 0;
+  align-items: flex-end;
+  gap: clamp(8px, 2.4vw, 44px);
+  min-height: 96px;
+  max-height: 275px;
+  max-width: 800px;
+  margin-top: auto;
+  padding-top: clamp(16px, 3.5vh, 45px);
+}
+
+.auth-chart__day {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(8px, 1.8vh, 16px);
+  min-width: 0;
+  height: 100%;
+  color: #b7b7c0;
+  font-size: clamp(0.8125rem, 2vh, 1.0625rem);
+}
+
+.auth-chart__day .is-active {
+  color: #fff;
+}
+
+.auth-chart__bar {
+  width: 100%;
+  max-width: 76px;
+  border-radius: 999px;
+  transform-origin: bottom;
+  animation: auth-grow 0.6s both ease-out;
+}
+
+.auth-chart__bar--short { height: 36%; }
+.auth-chart__bar--medium { height: 48%; }
+.auth-chart__bar--tall { height: 70%; }
+.auth-chart__bar--medium-tall { height: 64%; }
+.auth-chart__bar--highest { height: 92%; }
+.auth-chart__bar--light { background: #cfc6fa; }
+.auth-chart__bar--mid { background: #a793f9; }
+.auth-chart__bar--strong { background: #7c5ff5; }
+.auth-chart__bar--empty { background: #2a2a2e; }
+
+.auth-benefits {
+  display: grid;
+  gap: clamp(10px, 1.7vh, 17px);
+  margin-top: clamp(20px, 5vh, 80px);
+  color: #e5e5e9;
+  font-size: 1.0625rem;
+}
+
+.auth-benefits li {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.auth-benefits svg {
+  box-sizing: content-box;
+  padding: 3px;
+  border: 2px solid #f7930a;
+  border-radius: 50%;
+  color: #f7930a;
+}
+
+/* ----- Form panel (right) ----- */
+
+.auth-panel {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(12px, 3vh, 32px);
+  border-radius: 36px;
+  background: var(--auth-panel);
+}
+
+.auth-card {
+  width: min(100%, 640px);
+  max-height: 100%;
+  padding: clamp(20px, 4.2vh, 56px) clamp(24px, 3.6vw, 56px);
+  overflow-y: auto;
+  border-radius: 36px;
+  background: var(--auth-card);
+}
+
+.auth-card header {
+  margin-bottom: clamp(4px, 1.5vh, 15px);
+}
+
+.auth-card h2 {
+  font-size: clamp(1.75rem, 4.6vh, 3rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+}
+
+.auth-card header p {
+  margin-top: clamp(6px, 1.5vh, 15px);
+  color: var(--color-ink-muted);
+  font-size: clamp(0.9375rem, 2.2vh, 1.25rem);
+}
+
+.auth-fieldset {
+  min-width: 0;
+  margin: 0 0 clamp(12px, 2.4vh, 22px);
+  padding: 0;
+  border: 0;
+}
+
+.auth-field {
+  margin-top: clamp(12px, 2.3vh, 23px);
+}
+
+.auth-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: clamp(0.875rem, 1.9vh, 1rem);
+  font-weight: 700;
+}
+
+.auth-field input {
+  width: 100%;
+  height: clamp(44px, 6.2vh, 56px);
+  padding: 0 24px;
+  border: 1px solid var(--auth-field-border);
+  border-radius: 999px;
+  outline: 0;
+  background: var(--auth-field-bg);
+  color: var(--color-ink);
+  font-size: clamp(1rem, 2.2vh, 1.125rem);
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+}
+
+.auth-field input::placeholder {
+  color: var(--color-ink-subtle);
+}
+
+.auth-field input:focus {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-focus) 28%, transparent);
+}
+
+.auth-field input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.auth-field input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-danger) 22%, transparent);
+}
+
+.auth-field input:disabled {
+  opacity: 0.7;
+}
+
+/* Browser autofill would otherwise paint its own yellow/blue background. */
+.auth-field input:-webkit-autofill,
+.auth-field input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-ink);
+  caret-color: var(--color-ink);
+  box-shadow: 0 0 0 1000px var(--auth-field-bg) inset;
+}
+
+.password-control {
+  position: relative;
+}
+
+.password-control input {
+  padding-right: 62px;
+}
+
+.password-control button {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-ink-muted);
+}
+
+.password-control button:hover {
+  background: var(--color-skeleton);
+  color: var(--color-ink);
+}
+
+.auth-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: clamp(14px, 2.6vh, 26px) 0;
+}
+
+.check-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.check-label input {
+  appearance: none;
+  flex: 0 0 auto;
+  width: 27px;
+  height: 27px;
+  margin: 0;
+  border: 2px solid var(--color-ink-subtle);
+  border-radius: 7px;
+  background: var(--auth-field-bg);
+  cursor: pointer;
+}
+
+.check-label input:checked {
+  border-color: #775eee;
+  background: #775eee url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 8 3 3 7-7' fill='none' stroke='white' stroke-width='2.2'/%3E%3C/svg%3E") center / 18px no-repeat;
+}
+
+.check-label input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+.check-label--terms {
+  align-items: flex-start;
+  margin-top: 4px;
+}
+
+.check-label--terms input {
+  margin-top: 1px;
+}
+
+.auth-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--auth-link);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.auth-link:hover,
+.auth-footer a:hover {
+  text-decoration: underline;
+}
+
+.auth-footer a {
+  color: var(--auth-link);
+  font-weight: 700;
+}
+
+.auth-link--small {
+  font-size: 0.8125rem;
+}
+
+.auth-submit {
+  width: 100%;
+  height: clamp(48px, 6.6vh, 60px);
+  border: 0;
+  border-radius: 999px;
+  background: var(--auth-button);
+  color: #fff;
+  font-size: clamp(1rem, 2.3vh, 1.125rem);
+  font-weight: 700;
+  transition: background 0.18s, transform 0.18s;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--auth-button-hover);
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.auth-submit:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.auth-meta {
+  margin-top: clamp(14px, 3vh, 38px);
+}
+
+.auth-footer {
+  text-align: center;
+  color: var(--color-ink-muted);
+  font-size: clamp(0.9375rem, 2.1vh, 1.0625rem);
+}
+
+.auth-demo {
+  margin-top: 10px;
+  text-align: center;
+  color: var(--color-ink-muted);
+  font-size: 0.8125rem;
+}
+
+.auth-error {
+  margin: 7px 0 0;
+  color: var(--color-danger);
+  font-size: 0.875rem;
+}
+
+.auth-error--form {
+  margin: 0 0 14px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.auth-success {
+  margin: 14px 0;
+  color: var(--color-success);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.password-strength {
+  margin: clamp(10px, 2vh, 17px) 0 clamp(12px, 2.4vh, 26px);
+}
+
+.password-strength__bars {
+  display: flex;
+  gap: 9px;
+}
+
+.password-strength__bars span {
+  flex: 1;
+  height: clamp(7px, 1.2vh, 10px);
+  border-radius: 999px;
+  background: var(--color-skeleton);
+  transition: background 0.18s;
+}
+
+.password-strength__bars .is-filled {
+  background: #7c5ff5;
+}
+
+.password-strength p {
+  margin-top: 8px;
+  color: var(--color-ink-muted);
+  font-size: 0.875rem;
+}
+
+.auth-card--shake {
+  animation: auth-shake 0.35s both;
+}
+
+@keyframes auth-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes auth-shake {
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* ----- Desktop, but short (for example a laptop with a toolbar-heavy browser) ----- */
+
+@media (min-width: 900px) and (max-height: 799px) {
+  .auth-benefits {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) and (max-height: 640px) {
+  .auth-hero__copy p {
+    display: none;
+  }
+}
+
+/* Short desktop windows: tighten the form so even Sign up fits without scrolling. */
+@media (min-width: 900px) and (max-height: 720px) {
+  .auth-panel {
+    padding: 10px;
+  }
+
+  .auth-card {
+    padding-block: 22px;
+  }
+
+  .auth-card header p {
+    margin-top: 4px;
+    font-size: 0.875rem;
+  }
+
+  .auth-field {
+    margin-top: 10px;
+  }
+
+  .auth-field label {
+    margin-bottom: 5px;
+  }
+
+  .auth-field input {
+    height: 42px;
+  }
+
+  .auth-options {
+    margin: 12px 0;
+  }
+
+  .password-strength {
+    margin: 8px 0 10px;
+  }
+
+  .password-strength p {
+    margin-top: 5px;
+    font-size: 0.8125rem;
+  }
+
+  .check-label--terms {
+    margin-top: 0;
+  }
+
+  .auth-submit {
+    height: 46px;
+  }
+
+  .auth-meta {
+    margin-top: 12px;
+  }
+}
+
+/* So short that nothing can fit: let the page scroll normally instead of clipping. */
+@media (min-width: 900px) and (max-height: 599px) {
+  .auth-page {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .auth-shell {
+    height: auto;
+    min-height: calc(100dvh - var(--auth-page-pad) * 2);
+  }
+
+  .auth-card {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .auth-chart {
+    display: none;
+  }
+}
+
+/* ----- Small desktop / large tablet landscape: narrower hero ----- */
+
+@media (min-width: 900px) and (max-width: 1099px) {
+  .auth-shell {
+    grid-template-columns: minmax(0, 42fr) minmax(0, 58fr);
+  }
+
+  .auth-brand__mark {
+    border-radius: 14px;
+  }
+}
+
+/* ==========================================================================
+   Tablet portrait and phones (below 900px): single column
+   ========================================================================== */
+
+@media (max-width: 899px) {
+  .auth-page {
+    height: auto;
+    min-height: 100dvh;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .auth-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    height: auto;
+    min-height: 100dvh;
+    padding: 0;
+    overflow: visible;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  /* Dark header that the form card overlaps */
+  .auth-hero {
+    flex: none;
+    padding: max(22px, env(safe-area-inset-top)) clamp(24px, 6vw, 48px) 56px;
+    border-radius: 0;
+  }
+
+  .auth-brand {
+    font-size: 1.375rem;
+  }
+
+  .auth-brand__mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .auth-hero__copy {
+    margin-top: 18px;
+  }
+
+  .auth-hero h1 {
+    max-width: 14em;
+    font-size: clamp(1.75rem, 5.2vw, 2.25rem);
+    letter-spacing: -0.045em;
+  }
+
+  .auth-hero h1 span {
+    display: inline;
+  }
+
+  .auth-hero__copy p,
+  .auth-benefits {
+    display: none;
+  }
+
+  /* A small version of the weekly chart fills the header on the login screen. */
+  .auth-chart {
+    flex: none;
+    justify-content: space-between;
+    gap: 0;
+    width: 100%;
+    max-width: 260px;
+    height: 56px;
+    min-height: 0;
+    margin-top: 16px;
+    padding-top: 0;
+  }
+
+  .auth-chart__day {
+    flex: 0 0 18px;
+    gap: 0;
+  }
+
+  .auth-chart__day > span:last-child {
+    display: none;
+  }
+
+  .auth-chart__bar {
+    max-width: none;
+  }
+
+  .auth-page--signup .auth-chart {
+    display: none;
+  }
+
+  .auth-page--signup .auth-hero {
+    padding-bottom: 56px;
+  }
+
+  .auth-page--signup .auth-hero h1 {
+    font-size: clamp(1.5rem, 4.6vw, 2rem);
+  }
+
+  /* The form card stretches to the bottom edge of the screen. */
+  .auth-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    margin-top: -32px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .auth-card {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
+    max-height: none;
+    padding: 28px 24px calc(24px + env(safe-area-inset-bottom));
+    overflow: visible;
+    border-radius: 28px 28px 0 0;
+  }
+
+  .auth-card header {
+    margin-bottom: 4px;
+  }
+
+  .auth-card h2 {
+    font-size: 1.875rem;
+  }
+
+  .auth-card header p {
+    font-size: 1rem;
+  }
+
+  .auth-field {
+    margin-top: 18px;
+  }
+
+  .auth-field input {
+    height: 52px;
+    padding-inline: 20px;
+    font-size: 1rem;
+  }
+
+  .auth-options {
+    flex-wrap: wrap;
+    margin: 18px 0 22px;
+  }
+
+  .auth-options .auth-link {
+    min-height: 44px;
+  }
+
+  .check-label input {
+    width: 24px;
+    height: 24px;
+  }
+
+  .check-label--terms {
+    margin-top: 2px;
+  }
+
+  .auth-submit {
+    height: 56px;
+    font-size: 1rem;
+  }
+
+  /* Footer links sit at the bottom of the screen when there is spare room. */
+  .auth-meta {
+    margin-top: auto;
+    padding-top: 28px;
+  }
+
+  .auth-footer {
+    font-size: 1rem;
+  }
+
+  .auth-footer a,
+  .auth-demo .auth-link {
+    display: inline-block;
+    padding: 8px 2px;
+  }
+}
+
+/* Tablet portrait: centred floating card */
+@media (min-width: 600px) and (max-width: 899px) {
+  .auth-hero {
+    padding-bottom: 80px;
+  }
+
+  .auth-panel {
+    align-items: center;
+    margin-top: -40px;
+    padding: 0 24px 32px;
+  }
+
+  .auth-card {
+    flex: 0 1 auto;
+    width: min(100%, 560px);
+    padding: 36px 40px;
+    border-radius: 32px;
+  }
+
+  .auth-chart {
+    height: 80px;
+  }
+
+  .auth-meta {
+    margin-top: 0;
+  }
+}
+
+/* Shorter phones: drop the mini chart so the form gets the room. */
+@media (max-width: 899px) and (max-height: 779px) {
+  .auth-chart {
+    display: none;
+  }
+
+  .auth-hero {
+    padding-bottom: 52px;
+  }
+}
+
+/* Phone in landscape (or any very short stacked screen): keep the header slim. */
+@media (max-width: 899px) and (max-height: 520px) {
+  .auth-hero__copy,
+  .auth-chart {
+    display: none;
+  }
+
+  .auth-hero {
+    padding-bottom: 56px;
+  }
+}
+
+@media (max-width: 359px) {
+  .auth-card {
+    padding-inline: 18px;
+  }
+
+  .auth-brand {
+    font-size: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-chart__bar,
+  .auth-card--shake {
+    animation: none;
+  }
+}

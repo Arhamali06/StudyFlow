@@ -5,16 +5,40 @@ export const AUTH_CONFIG = {
   storageKey: 'studyflow-authenticated',
 } as const
 
+export const EMAIL_PATTERN = /^\S+@\S+\.\S+$/
+
+function readFlag(storage: Storage) {
+  try {
+    return storage.getItem(AUTH_CONFIG.storageKey) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export function isAuthenticated() {
-  return localStorage.getItem(AUTH_CONFIG.storageKey) === 'true' || sessionStorage.getItem(AUTH_CONFIG.storageKey) === 'true'
+  return readFlag(localStorage) || readFlag(sessionStorage)
+}
+
+/** Checks the demo credentials. Swap this for an API call when a backend exists. */
+export function checkCredentials(email: string, password: string) {
+  return email.trim().toLowerCase() === AUTH_CONFIG.email && password === AUTH_CONFIG.password
 }
 
 export function setAuthenticated(remember: boolean) {
-  const storage = remember ? localStorage : sessionStorage
-  storage.setItem(AUTH_CONFIG.storageKey, 'true')
+  // Clear first so an older "remember me" flag can never outlive a session-only login.
+  clearAuthentication()
+  try {
+    ;(remember ? localStorage : sessionStorage).setItem(AUTH_CONFIG.storageKey, 'true')
+  } catch {
+    /* Storage can be blocked (private mode). The user simply stays logged out. */
+  }
 }
 
 export function clearAuthentication() {
-  localStorage.removeItem(AUTH_CONFIG.storageKey)
-  sessionStorage.removeItem(AUTH_CONFIG.storageKey)
+  try {
+    localStorage.removeItem(AUTH_CONFIG.storageKey)
+    sessionStorage.removeItem(AUTH_CONFIG.storageKey)
+  } catch {
+    /* ignore */
+  }
 }

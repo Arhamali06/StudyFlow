@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { LogOut, Menu, Search } from 'lucide-react'
-import { clearAuthentication } from '../../lib/auth'
+import { Menu, Search } from 'lucide-react'
 
 interface HeaderProps {
   onOpenMenu: () => void
@@ -35,7 +34,6 @@ export default function Header({ onOpenMenu, isMenuOpen }: HeaderProps) {
     inputRef.current?.blur()
   }
 
-  function logout() { clearAuthentication(); navigate('/login') }
   return (
     <header className="app-header">
       <button
@@ -65,7 +63,6 @@ export default function Header({ onOpenMenu, isMenuOpen }: HeaderProps) {
           {isApplePlatform ? '⌘ K' : 'Ctrl K'}
         </kbd>
       </form>
-      <button type="button" className="header-logout" onClick={logout}><LogOut size={17} aria-hidden="true" /> <span>Log out</span></button>
     </header>
   )
 }

@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
-import { NavLink } from 'react-router-dom'
-import { X } from 'lucide-react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { LogOut, X } from 'lucide-react'
+import { clearAuthentication } from '../../lib/auth'
 import { NAV_GROUPS } from './navigation'
 
 interface SidebarProps {
@@ -29,6 +30,13 @@ function BrandMark() {
 }
 
 const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen, onClose, onNavigate }, ref) {
+  const navigate = useNavigate()
+
+  function logout() {
+    clearAuthentication()
+    navigate('/login', { replace: true })
+  }
+
   return (
     <aside
       ref={ref}
@@ -73,6 +81,13 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen,
           </div>
         ))}
       </nav>
+
+      <div className="sidebar__footer">
+        <button type="button" className="nav-link sidebar__logout" onClick={logout}>
+          <LogOut size={22} strokeWidth={1.75} aria-hidden="true" />
+          <span>Log out</span>
+        </button>
+      </div>
     </aside>
   )
 })
