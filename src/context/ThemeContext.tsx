@@ -1,5 +1,5 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { loadTheme, saveTheme } from '../lib/storage'
+import { loadTheme, saveTheme, STORAGE_KEYS } from '../lib/storage'
 import { useToast } from '../hooks/useToast'
 import type { ResolvedTheme, ThemeContextValue, ThemePreference } from '../types'
 
@@ -18,19 +18,18 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isSystemDark, setIsSystemDark] = useState(systemPrefersDark)
   const { showToast } = useToast()
 
-  // Follow the operating system setting while it changes.
+  // Always track the operating system setting, even while Light or Dark is chosen.
+  // Otherwise switching to "System" later would use an outdated value.
   useEffect(() => {
     const query = window.matchMedia(DARK_QUERY)
-    const handleChange = (event: MediaQueryListEvent) => {
-      if (theme === 'system') setIsSystemDark(event.matches)
-    }
+    const handleChange = (event: MediaQueryListEvent) => setIsSystemDark(event.matches)
     query.addEventListener('change', handleChange)
     return () => query.removeEventListener('change', handleChange)
-  }, [theme])
+  }, [])
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
-      if (event.key !== 'studyflow:v1:theme') return
+      if (event.key !== STORAGE_KEYS.theme) return
       setThemeState(loadTheme())
     }
     window.addEventListener('storage', handleStorage)
@@ -44,9 +43,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.documentElement.dataset.theme = resolvedTheme
     document.documentElement.style.colorScheme = resolvedTheme
+    // Use the real frame colour from the design tokens so the browser UI always matches.
+    const frameColor = getComputedStyle(document.documentElement).getPropertyValue('--color-frame').trim()
     document.querySelector('meta[name="theme-color"]')?.setAttribute(
       'content',
-      resolvedTheme === 'dark' ? '#101013' : '#ffffff',
+      frameColor || (resolvedTheme === 'dark' ? '#101013' : '#ffffff'),
     )
   }, [resolvedTheme])
 

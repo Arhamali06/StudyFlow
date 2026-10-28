@@ -3,6 +3,13 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Header from './Header'
 
+const MENU_BUTTON_ID = 'app-menu-button'
+
+/** After the drawer closes, give keyboard users their place back on the menu button. */
+function restoreMenuButtonFocus() {
+  window.requestAnimationFrame(() => document.getElementById(MENU_BUTTON_ID)?.focus())
+}
+
 export default function AppLayout() {
   const { pathname } = useLocation()
 
@@ -13,7 +20,10 @@ export default function AppLayout() {
   const isMenuOpen = drawerPath === pathname
 
   const openMenu = () => setDrawerPath(pathname)
-  const closeMenu = () => setDrawerPath(null)
+  const closeMenu = (restoreFocus = false) => {
+    setDrawerPath(null)
+    if (restoreFocus) restoreMenuButtonFocus()
+  }
 
   // Allow Escape to close the drawer.
   useEffect(() => {
@@ -26,7 +36,10 @@ export default function AppLayout() {
       ) ?? [],
     ).filter((element) => !element.hasAttribute('hidden'))
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') setDrawerPath(null)
+      if (event.key === 'Escape') {
+        setDrawerPath(null)
+        restoreMenuButtonFocus()
+      }
       if (event.key !== 'Tab') return
       const items = focusable()
       if (items.length === 0) return
@@ -54,10 +67,15 @@ export default function AppLayout() {
         Skip to main content
       </a>
 
-      <Sidebar ref={sidebarRef} isOpen={isMenuOpen} onClose={closeMenu} />
+      <Sidebar
+        ref={sidebarRef}
+        isOpen={isMenuOpen}
+        onClose={() => closeMenu(true)}
+        onNavigate={() => closeMenu(false)}
+      />
       <div
         className={`sidebar-overlay${isMenuOpen ? ' is-visible' : ''}`}
-        onClick={closeMenu}
+        onClick={() => closeMenu(true)}
         aria-hidden="true"
       />
 

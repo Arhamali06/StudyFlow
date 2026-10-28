@@ -1,6 +1,6 @@
-import { addDays, compareDateStrings, parseDateString, toDateString } from './dates'
+import { addDays, parseDateString, toDateString } from './dates'
 import { isTaskOverdue } from './tasks'
-import type { Subject, Task } from '../types'
+import type { Task } from '../types'
 
 /** Calendar months use JavaScript's 0-based convention: January is 0, December is 11. */
 export interface CalendarDay {
@@ -99,14 +99,6 @@ export function moveCalendarDate(
   return toDateString(addDays(date, offset))
 }
 
-export function groupTasksByDate(tasks: Task[]): Map<string, Task[]> {
-  const grouped = new Map<string, Task[]>()
-  for (const task of tasks) {
-    grouped.set(task.dueDate, [...(grouped.get(task.dueDate) ?? []), task])
-  }
-  return grouped
-}
-
 export function getDaySummary(tasks: Task[], date: string, today: string): DaySummary {
   const dayTasks = tasks.filter((task) => task.dueDate === date)
   return {
@@ -180,12 +172,4 @@ export function sortDayTasks(tasks: Task[]): Task[] {
       priorityRank[b.priority] - priorityRank[a.priority] ||
       a.title.localeCompare(b.title),
   )
-}
-
-export function getTaskIndicatorSubjects(tasks: Task[], subjects: Map<string, Subject>): Subject[] {
-  return tasks.slice(0, 3).map((task) => subjects.get(task.subjectId)).filter((subject): subject is Subject => Boolean(subject))
-}
-
-export function compareCalendarDates(a: string, b: string): number {
-  return compareDateStrings(a, b)
 }

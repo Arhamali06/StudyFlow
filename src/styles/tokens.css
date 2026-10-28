@@ -17,28 +17,29 @@
   /* Text */
   --color-ink: #111113;
   --color-ink-muted: #6b6b73;
-  --color-ink-subtle: #8c8c95;
+  --color-ink-subtle: #70707c; /* 4.5:1+ on white and panel (was #8c8c95, 3.3:1) */
 
   /* Lines */
   --color-border: #e6e6ea;
 
   /* Brand accents (taken from the reference: purple + orange + black) */
-  --color-primary: #7b61f5;
+  --color-primary: #775eee; /* 4.5:1 on white, so white-on-primary text passes AA */
   --color-primary-hover: #6a4eea;
   --color-primary-300: #a594f9;
   --color-primary-200: #cfc7fb;
   --color-primary-soft: #efebfe;
   --color-on-primary: #ffffff;
   --color-accent: #ff9500;
+  --color-on-accent: #111113; /* text on orange: 8.6:1 (white on orange is only 2.2:1) */
   --color-accent-strong: #ff6a13;
   --color-accent-soft: #fff1de;
 
   /* Feedback */
-  --color-success: #1f8a4c;
+  --color-success: #1c7c44;
   --color-success-soft: #e7f5ed;
-  --color-danger: #d23b3b;
+  --color-danger: #c33737;
   --color-danger-soft: #fdeaea;
-  --color-warning: #b86e00;
+  --color-warning: #9e5f00;
   --color-warning-soft: #fff1de;
 
   /* Focus ring */
@@ -92,7 +93,7 @@
   --shadow-drawer: 0 24px 60px rgba(17, 17, 19, 0.18);
 }
 
-/* Dark theme — switched on by <html data-theme="dark"> (wired up in Phase 8). */
+/* Dark theme — switched on by <html data-theme="dark"> (set by the ThemeProvider). */
 :root[data-theme='dark'] {
   --color-canvas: #08080a;
   --color-frame: #101013;
@@ -105,7 +106,7 @@
 
   --color-ink: #f4f4f6;
   --color-ink-muted: #a3a3ad;
-  --color-ink-subtle: #82828c;
+  --color-ink-subtle: #878791;
 
   --color-border: #2c2c34;
 

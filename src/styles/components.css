@@ -438,7 +438,7 @@
 
 @media (max-width: 30rem) {
   .form__row {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -905,13 +905,11 @@
 
 /* Keep dashboard rows shrinkable on narrow screens without changing desktop layout. */
 .dash-today__item,
-.dash-subjects__item,
 .dash-deadlines__item {
   min-width: 0;
 }
 
 .dash-today__title,
-.dash-subjects__name,
 .dash-deadlines__title {
   overflow-wrap: anywhere;
 }

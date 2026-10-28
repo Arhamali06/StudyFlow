@@ -73,7 +73,7 @@
 
 @media (max-width: 42rem) {
   .settings-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -83,16 +83,6 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: var(--space-4);
-}
-
-.split-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-4);
-}
-
-.split-grid > .card {
-  min-height: 0;
 }
 
 /* ----- Action-focused dashboard ----- */
@@ -165,7 +155,7 @@
 }
 
 .dash-next-days__day.is-today {
-  color: var(--color-ink-inverse);
+  color: var(--color-on-accent);
   background: var(--color-accent);
   border-color: var(--color-accent);
 }
@@ -333,83 +323,7 @@
   }
 }
 
-@media (max-width: 52rem) {
-  .split-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Weekly chart card (placeholder bars until Phase 5) */
-
-.trend-card {
-  display: grid;
-  grid-template-columns: minmax(14rem, 20rem) minmax(0, 1fr);
-  gap: var(--space-8);
-  align-items: stretch;
-}
-
-.trend-card__total {
-  margin-top: var(--space-8);
-  padding: var(--space-6);
-  border-radius: var(--radius-md);
-  background: var(--color-panel);
-}
-
-.trend-card__total-value {
-  font-size: var(--text-stat);
-  line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.trend-card__total-label {
-  margin-top: var(--space-2);
-  color: var(--color-ink-muted);
-}
-
-.trend-bars {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: clamp(var(--space-2), 2vw, var(--space-5));
-  align-items: end;
-  min-height: 15rem;
-}
-
-.trend-bars__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-3);
-  height: 100%;
-  justify-content: flex-end;
-}
-
-.trend-bars__bar {
-  width: 100%;
-  max-width: 4.25rem;
-  height: 70%;
-  border-radius: var(--radius-pill);
-  background: var(--color-skeleton);
-}
-
-.trend-bars__bar.is-today {
-  background: var(--color-primary-200);
-}
-
-.trend-bars__day {
-  color: var(--color-ink-muted);
-  font-size: var(--text-lg);
-}
-
-@media (max-width: 52rem) {
-  .trend-card {
-    grid-template-columns: 1fr;
-    gap: var(--space-5);
-  }
-
-  .trend-card__total {
-    margin-top: var(--space-4);
-  }
-}
+/* Weekly chart card */
 
 /* ==========================================================================
    Phase 3 + 4 additions — subjects page and tasks page.
@@ -1020,7 +934,7 @@
 
 @media (max-width: 74.99rem) {
   .tasks-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .task-side-panel {
@@ -1062,7 +976,7 @@
   }
 
   .task-side-panel {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .task-item {
@@ -1188,47 +1102,8 @@
 }
 
 /* ==========================================================================
-   Phase 5 — dashboard widgets
+   Dashboard widgets
    ========================================================================== */
-
-/* Weekly chart (Recharts) */
-
-.dash-chart {
-  height: 15rem;
-  min-height: 15rem;
-}
-
-.dash-chart--empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dash-chart__empty-text {
-  color: var(--color-ink-muted);
-  text-align: center;
-  line-height: 1.6;
-}
-
-.dash-chart__track {
-  fill: var(--color-skeleton);
-}
-
-.dash-chart__tooltip {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
-  background: var(--color-card-dark);
-  color: var(--color-on-dark);
-  font-size: var(--text-sm);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.trend-card__change {
-  margin-top: var(--space-3);
-}
 
 /* Today's tasks */
 
@@ -1300,12 +1175,6 @@
   gap: var(--space-3);
 }
 
-.dash-deadlines__pager {
-  display: flex;
-  gap: var(--space-1);
-  flex-shrink: 0;
-}
-
 .dash-deadlines__list {
   display: flex;
   flex-direction: column;
@@ -1344,69 +1213,6 @@
 
 /* Subject progress */
 
-.dash-subjects__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  margin-top: var(--space-5);
-}
-
-.dash-subjects__item {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--space-1) var(--space-3);
-  align-items: center;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  transition: background var(--transition-fast);
-}
-
-.dash-subjects__item:hover {
-  background: var(--color-panel);
-}
-
-.dash-subjects__item:focus-visible {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 2px;
-}
-
-.dash-subjects__item .subject-chip__dot {
-  grid-row: 1 / -1;
-}
-
-.dash-subjects__name {
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dash-subjects__percent {
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-}
-
-.dash-subjects__item .progress {
-  grid-column: 2 / -1;
-}
-
-.dash-subjects__empty {
-  margin-top: var(--space-5);
-  color: var(--color-ink-muted);
-  font-size: var(--text-sm);
-}
-
-.dash-subjects__link {
-  color: var(--color-primary);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.dash-subjects__link:hover {
-  color: var(--color-primary-hover);
-}
-
 /* Quick-add dark card */
 
 .dash-quick__action {
@@ -1424,9 +1230,6 @@
 }
 
 /* Allow the Phase 5 split columns and their rows to shrink below min-content. */
-.split-grid > .card {
-  min-width: 0;
-}
 
 .dash-today__item {
   flex-wrap: wrap;
@@ -1670,7 +1473,7 @@
 
 @media (max-width: 64rem) {
   .calendar-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .day-panel {
@@ -1772,7 +1575,7 @@
 
 @media (max-width: 74.99rem) {
   .task-board {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1872,10 +1675,6 @@
 
 .progress-overview__summary {
   min-width: 0;
-}
-
-.progress-overview__summary h2 {
-  font-size: var(--text-2xl);
 }
 
 .progress-overview__summary p {
@@ -2386,4 +2185,10 @@
   .progress-breakdown__row {
     grid-template-columns: 6rem minmax(0, 1fr) 3.5rem;
   }
+}
+
+/* Settings: display-name form */
+.settings-form {
+  display: grid;
+  gap: var(--space-3);
 }

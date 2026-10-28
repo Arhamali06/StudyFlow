@@ -90,3 +90,10 @@ export function formatDate(value: string, now: Date = new Date()): string {
     year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric',
   })
 }
+
+/** "2026-10-23" -> "Fri" (just the short weekday, in the user's language). */
+export function formatWeekdayShort(value: string): string {
+  const date = parseDateString(value)
+  if (!date) return value
+  return date.toLocaleDateString(undefined, { weekday: 'short' })
+}

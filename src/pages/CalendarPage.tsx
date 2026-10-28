@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import PageHeader from '../components/layout/PageHeader'
 import CalendarMonth from '../components/calendar/CalendarMonth'
 import DayPanel from '../components/calendar/DayPanel'
-import TaskModal from '../components/tasks/TaskModal'
+import TaskDrawer from '../components/tasks/TaskDrawer'
 import Button from '../components/ui/Button'
 import ConfirmDialog from '../components/ui/ConfirmDialog'
 import { useAppData } from '../hooks/useAppData'
@@ -20,8 +20,12 @@ export default function CalendarPage() {
   const today = useToday()
   const { selectedDate, selectDate } = useCalendarDate(today)
   const [isAdding, setIsAdding] = useState(false)
-  const [editingTask, setEditingTask] = useState<Task | undefined>()
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [deletingTask, setDeletingTask] = useState<Task | undefined>()
+
+  // Look the task up by id so the drawer always edits the latest saved version, and
+  // closes by itself if the task disappears.
+  const editingTask = editingTaskId ? tasks.find((task) => task.id === editingTaskId) : undefined
 
   const subjectsById = useMemo(
     () => new Map(subjects.map((subject) => [subject.id, subject])),
@@ -71,18 +75,18 @@ export default function CalendarPage() {
           subjectsById={subjectsById}
           onAddTask={() => setIsAdding(true)}
           onToggle={handleToggle}
-          onOpenTask={setEditingTask}
+          onOpenTask={(task) => setEditingTaskId(task.id)}
           onDeleteTask={setDeletingTask}
         />
       </div>
 
       {isAdding && (
-        <TaskModal
+        <TaskDrawer
           initialValues={{ dueDate: selectedDate }}
           onClose={() => setIsAdding(false)}
         />
       )}
-      {editingTask && <TaskModal task={editingTask} onClose={() => setEditingTask(undefined)} />}
+      {editingTask && <TaskDrawer task={editingTask} onClose={() => setEditingTaskId(null)} />}
       {deletingTask && (
         <ConfirmDialog
           title="Delete task?"

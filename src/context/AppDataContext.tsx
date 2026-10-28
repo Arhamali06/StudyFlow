@@ -2,6 +2,7 @@ import { createContext, useCallback, useEffect, useMemo, useReducer, useRef, typ
 import { z } from 'zod'
 import { appDataReducer } from './appDataReducer'
 import { DEFAULT_USER_NAME, USER_NAME_MAX_LENGTH } from '../lib/constants'
+import { useToast } from '../hooks/useToast'
 import { createId } from '../lib/ids'
 import { createSampleData } from '../lib/sampleData'
 import { isSubjectNameTaken } from '../lib/subjects'
@@ -10,6 +11,7 @@ import {
   loadTasks,
   loadUserName,
   clearStoredAppData,
+  consumeSkippedItemCount,
   STORAGE_KEYS,
   saveSubjects,
   saveTasks,
@@ -48,7 +50,28 @@ function loadInitialData(): AppData {
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appDataReducer, undefined, loadInitialData)
+  const { showToast } = useToast()
   const skipNextPersistence = useRef(false)
+  const initialState = useRef(state)
+  const saveFailed = useRef(false)
+  const showToastRef = useRef(showToast)
+  useEffect(() => {
+    showToastRef.current = showToast
+  }, [showToast])
+
+  const warnAboutSkippedData = useCallback(() => {
+    if (consumeSkippedItemCount() > 0) {
+      showToastRef.current(
+        'Some saved data could not be read and was skipped. A backup copy of the original was kept in this browser.',
+        'error',
+      )
+    }
+  }, [])
+
+  // Tell the user (once) if saved data had to be skipped while the app started.
+  useEffect(() => {
+    warnAboutSkippedData()
+  }, [warnAboutSkippedData])
 
   // Save to localStorage whenever a piece of data changes.
   useEffect(() => {
@@ -56,9 +79,22 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       skipNextPersistence.current = false
       return
     }
-    saveSubjects(state.subjects)
-    saveTasks(state.tasks)
-    saveUserName(state.userName)
+    // Don't rewrite storage just because the app started: if some saved data could
+    // not be read, overwriting it here would destroy it before the user ever sees it.
+    if (state === initialState.current) return
+
+    const saved = [
+      saveSubjects(state.subjects),
+      saveTasks(state.tasks),
+      saveUserName(state.userName),
+    ].every(Boolean)
+    if (!saved && !saveFailed.current) {
+      showToastRef.current(
+        'Your latest changes could not be saved in this browser. Storage may be full or blocked.',
+        'error',
+      )
+    }
+    saveFailed.current = !saved
   }, [state])
 
   useEffect(() => {
@@ -70,10 +106,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       ) return
       const subjects = loadSubjects()
       dispatch({ type: 'data/replaced', state: { subjects, tasks: loadTasks(subjects), userName: loadUserName() } })
+      warnAboutSkippedData()
     }
     window.addEventListener('storage', handleStorage)
     return () => window.removeEventListener('storage', handleStorage)
-  }, [])
+  }, [warnAboutSkippedData])
 
   /*
    * Each action below: (1) checks the rules, (2) builds a complete record,

@@ -16,7 +16,8 @@ import { useTaskFilters } from '../hooks/useTaskFilters'
 import { useToast } from '../hooks/useToast'
 import { useToday } from '../hooks/useToday'
 import { countTasksByTab, filterTasks, sortTasks } from '../lib/tasks'
-import { addDays, compareDateStrings, getDayDifference, toDateString } from '../lib/dates'
+import { calculatePercentage, getTaskCounts } from '../lib/statistics'
+import { compareDateStrings, getDayDifference } from '../lib/dates'
 import { formatShortCalendarDay } from '../lib/calendar'
 import type { Task } from '../types'
 
@@ -26,7 +27,7 @@ type TaskGroup = { key: TaskGroupKey; title: string; tasks: Task[] }
 const GROUP_LABELS: Record<TaskGroupKey, string> = {
   overdue: 'Overdue',
   today: 'Today',
-  week: 'This week',
+  week: 'Next 7 days',
   later: 'Later',
   completed: 'Completed',
 }
@@ -48,9 +49,9 @@ export default function TasksPage() {
   const { filters, sort, updateFilters, resetFilters, hasActiveFilters } = useTaskFilters(subjects)
 
   const [view, setView] = useState<'list' | 'board'>('list')
-  const [openGroups, setOpenGroups] = useState<Set<TaskGroupKey>>(
-    () => new Set(['overdue', 'today', 'week', 'later']),
-  )
+  // Only groups the user has explicitly opened/closed are stored here; everything
+  // else follows the default rules in isGroupOpen below.
+  const [groupOverrides, setGroupOverrides] = useState<Partial<Record<TaskGroupKey, boolean>>>({})
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
@@ -58,12 +59,16 @@ export default function TasksPage() {
     () => new Map(subjects.map((subject) => [subject.id, subject])),
     [subjects],
   )
-  const counts = useMemo(() => countTasksByTab(tasks, filters), [tasks, filters])
+  const counts = useMemo(() => countTasksByTab(tasks, filters, today), [tasks, filters, today])
   const visibleTasks = useMemo(
-    () => sortTasks(filterTasks(tasks, filters), sort),
-    [tasks, filters, sort],
+    () => sortTasks(filterTasks(tasks, filters, today), sort),
+    [tasks, filters, sort, today],
   )
   const selectedTask = tasks.find((task) => task.id === selectedId)
+  // If the task being edited disappears (deleted elsewhere, data cleared) the drawer
+  // closes instead of silently turning into a "New task" form.
+  const drawerTask = selectedId && selectedId !== 'new' ? selectedTask : undefined
+  const showDrawer = selectedId === 'new' || drawerTask !== undefined
   const deletingTask = tasks.find((task) => task.id === deletingId)
 
   const groups = useMemo<TaskGroup[]>(() => {
@@ -78,17 +83,13 @@ export default function TasksPage() {
   }, [today, visibleTasks])
 
   const summary = useMemo(() => {
-    const weekEnd = toDateString(addDays(new Date(`${today}T00:00:00`), 6))
-    return {
-      overdue: tasks.filter((task) => task.status === 'pending' && compareDateStrings(task.dueDate, today) < 0).length,
-      dueThisWeek: tasks.filter(
-        (task) =>
-          task.status === 'pending' &&
-          compareDateStrings(task.dueDate, today) >= 0 &&
-          compareDateStrings(task.dueDate, weekEnd) <= 0,
-      ).length,
-      pending: tasks.filter((task) => task.status === 'pending').length,
-    }
+    const counts = getTaskCounts(tasks, today)
+    const dueSoon = tasks.filter((task) => {
+      if (task.status !== 'pending') return false
+      const difference = getDayDifference(today, task.dueDate)
+      return difference >= 0 && difference <= 6
+    }).length
+    return { overdue: counts.overdue, dueSoon, pending: counts.pending }
   }, [tasks, today])
 
   const weekTasks = useMemo(
@@ -113,6 +114,18 @@ export default function TasksPage() {
     return result
   }, [tasks])
   const completedTotal = tasks.filter((task) => task.status === 'completed').length
+  const completedPercent = calculatePercentage(completedTotal, tasks.length)
+
+  function isGroupOpen(key: TaskGroupKey): boolean {
+    // On the "Completed" tab the completed group is the whole page: never hide it.
+    if (key === 'completed' && filters.tab === 'completed') return true
+    const override = groupOverrides[key]
+    if (override !== undefined) return override
+    // Completed work starts collapsed, unless it is all there is to show or the
+    // user is searching (a collapsed group would hide matching results).
+    if (key !== 'completed') return true
+    return filters.query.trim() !== '' || groups.length === 1
+  }
 
   function handleToggle(task: Task) {
     const result = toggleTaskCompleted(task.id)
@@ -136,12 +149,7 @@ export default function TasksPage() {
   }
 
   function toggleGroup(key: TaskGroupKey) {
-    setOpenGroups((current) => {
-      const next = new Set(current)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
+    setGroupOverrides((current) => ({ ...current, [key]: !isGroupOpen(key) }))
   }
 
   function renderTask(task: Task, variant: 'list' | 'board' = 'list') {
@@ -216,7 +224,7 @@ export default function TasksPage() {
             <span className={summary.overdue > 0 ? 'is-danger' : ''}>
               {summary.overdue} Overdue
             </span>
-            <span>{summary.dueThisWeek} Due this week</span>
+            <span>{summary.dueSoon} Due in next 7 days</span>
             <span>{summary.pending} Pending</span>
           </div>
 
@@ -260,12 +268,12 @@ export default function TasksPage() {
                 <div className="task-groups">
                   {groups.map((group) => (
                     <section key={group.key} className={`task-group task-group--${group.key}`}>
-                      <button type="button" className="task-group__header" onClick={() => toggleGroup(group.key)} aria-expanded={openGroups.has(group.key)}>
+                      <button type="button" className="task-group__header" onClick={() => toggleGroup(group.key)} aria-expanded={isGroupOpen(group.key)}>
                         <span>{group.title}</span>
                         <span className="task-group__count">{group.tasks.length}</span>
-                        <span aria-hidden="true">{openGroups.has(group.key) ? '−' : '+'}</span>
+                        <span aria-hidden="true">{isGroupOpen(group.key) ? '−' : '+'}</span>
                       </button>
-                      {openGroups.has(group.key) && <ul className="task-list">{group.tasks.map((task) => renderTask(task))}</ul>}
+                      {isGroupOpen(group.key) && <ul className="task-list">{group.tasks.map((task) => renderTask(task))}</ul>}
                     </section>
                   ))}
                 </div>
@@ -276,18 +284,18 @@ export default function TasksPage() {
               <section className="card task-side-card">
                 <h2>Progress</h2>
                 <div className="task-progress-ring">
-                  <strong>{tasks.length ? Math.round((completedTotal / tasks.length) * 100) : 0}%</strong>
+                  <strong>{completedPercent}%</strong>
                   <span>{completedTotal}/{tasks.length} done</span>
                 </div>
-                <ProgressBar value={tasks.length ? Math.round((completedTotal / tasks.length) * 100) : 0} label="Overall completion" />
+                <ProgressBar value={completedPercent} label="Overall completion" />
               </section>
               <section className="card task-side-card">
-                <h2>Due this week</h2>
+                <h2>Next 7 days</h2>
                 {weekTasks.length ? (
                   <ul className="task-side-list">
                     {weekTasks.map((task) => <li key={task.id}><span>{task.title}</span><small>{formatShortCalendarDay(task.dueDate)}</small></li>)}
                   </ul>
-                ) : <p className="card__placeholder">Nothing due this week.</p>}
+                ) : <p className="card__placeholder">Nothing due in the next 7 days.</p>}
               </section>
               <section className="card task-side-card">
                 <h2>By subject</h2>
@@ -305,9 +313,9 @@ export default function TasksPage() {
         </>
       )}
 
-      {selectedId && (
+      {showDrawer && (
         <TaskDrawer
-          task={selectedId === 'new' ? undefined : selectedTask}
+          task={drawerTask}
           initialValues={selectedId === 'new' && filters.subjectId !== 'all' ? { subjectId: filters.subjectId } : undefined}
           onClose={() => setSelectedId(null)}
         />

@@ -38,6 +38,11 @@ export default function NeedsAttention({ subjects, tasks, today }: NeedsAttentio
           ))}
         </ul>
       )}
+      {rows.length > 4 && (
+        <p className="card__placeholder">
+          +{rows.length - 4} more {rows.length - 4 === 1 ? 'subject needs' : 'subjects need'} attention
+        </p>
+      )}
     </section>
   )
 }

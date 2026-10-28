@@ -37,6 +37,7 @@ export default function Header({ onOpenMenu, isMenuOpen }: HeaderProps) {
   return (
     <header className="app-header">
       <button
+        id="app-menu-button"
         type="button"
         className="icon-button app-header__menu"
         onClick={onOpenMenu}

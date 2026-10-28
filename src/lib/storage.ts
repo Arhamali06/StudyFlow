@@ -68,11 +68,57 @@ function removeKey(key: string): boolean {
   }
 }
 
+/* ----- Protection against silent data loss ----- */
+
+const BACKUP_SUFFIX = ':backup'
+let skippedItemCount = 0
+
+function hasStoredValue(key: string): boolean {
+  try {
+    return getStorage()?.getItem(key) != null
+  } catch {
+    return false
+  }
+}
+
+/**
+ * If saved data can't be read (broken JSON, wrong shape, invalid records), keep a
+ * copy of the original text before the app overwrites it. Only the first backup is
+ * kept, so a later problem can't replace the evidence of an earlier one.
+ */
+function backupRawOnce(key: string): void {
+  try {
+    const storage = getStorage()
+    const raw = storage?.getItem(key)
+    if (!storage || raw == null) return
+    const backupKey = `${key}${BACKUP_SUFFIX}`
+    if (storage.getItem(backupKey) == null) storage.setItem(backupKey, raw)
+  } catch {
+    // Nothing more we can do (storage full or blocked).
+  }
+}
+
+function recordSkipped(key: string, count: number): void {
+  if (count <= 0) return
+  skippedItemCount += count
+  backupRawOnce(key)
+}
+
+/** How many saved items could not be read since the last call (then resets to 0). */
+export function consumeSkippedItemCount(): number {
+  const count = skippedItemCount
+  skippedItemCount = 0
+  return count
+}
+
 /* ----- Subjects ----- */
 
 export function loadSubjects(): Subject[] {
   const raw = readJSON(STORAGE_KEYS.subjects)
-  if (!Array.isArray(raw)) return []
+  if (!Array.isArray(raw)) {
+    if (hasStoredValue(STORAGE_KEYS.subjects)) recordSkipped(STORAGE_KEYS.subjects, 1)
+    return []
+  }
 
   const seenIds = new Set<string>()
   const subjects: Subject[] = []
@@ -84,6 +130,7 @@ export function loadSubjects(): Subject[] {
     subjects.push(result.data)
   }
 
+  recordSkipped(STORAGE_KEYS.subjects, raw.length - subjects.length)
   return subjects
 }
 
@@ -100,7 +147,10 @@ export function saveSubjects(subjects: Subject[]): boolean {
  */
 export function loadTasks(subjects: Subject[]): Task[] {
   const raw = readJSON(STORAGE_KEYS.tasks)
-  if (!Array.isArray(raw)) return []
+  if (!Array.isArray(raw)) {
+    if (hasStoredValue(STORAGE_KEYS.tasks)) recordSkipped(STORAGE_KEYS.tasks, 1)
+    return []
+  }
 
   const subjectIds = new Set(subjects.map((subject) => subject.id))
   const seenIds = new Set<string>()
@@ -114,6 +164,7 @@ export function loadTasks(subjects: Subject[]): Task[] {
     tasks.push(normalizeStoredTask(result.data))
   }
 
+  recordSkipped(STORAGE_KEYS.tasks, raw.length - tasks.length)
   return tasks
 }
 
@@ -147,9 +198,18 @@ export function saveTheme(theme: ThemePreference): boolean {
 
 /* ----- Reset ----- */
 
-/** Removes saved tasks, subjects and name. The theme preference is kept on purpose. */
+/**
+ * Removes saved tasks, subjects and name (and any recovery backups of them).
+ * The theme preference is kept on purpose.
+ */
 export function clearStoredAppData(): boolean {
-  return [STORAGE_KEYS.subjects, STORAGE_KEYS.tasks, STORAGE_KEYS.userName]
+  return [
+    STORAGE_KEYS.subjects,
+    STORAGE_KEYS.tasks,
+    STORAGE_KEYS.userName,
+    `${STORAGE_KEYS.subjects}${BACKUP_SUFFIX}`,
+    `${STORAGE_KEYS.tasks}${BACKUP_SUFFIX}`,
+  ]
     .map(removeKey)
     .every(Boolean)
 }

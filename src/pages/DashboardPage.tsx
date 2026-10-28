@@ -17,6 +17,7 @@ import { useStudyStatistics } from '../hooks/useStudyStatistics'
 import { useToast } from '../hooks/useToast'
 import { DEFAULT_USER_NAME } from '../lib/constants'
 import { formatDate, parseDateString } from '../lib/dates'
+import { getTodayAndOverdueTasks, getUpcomingTasks } from '../lib/statistics'
 
 export default function DashboardPage() {
   useDocumentTitle('Dashboard')
@@ -34,17 +35,9 @@ export default function DashboardPage() {
     () => new Map(subjects.map((subject) => [subject.id, subject])),
     [subjects],
   )
-  const todayTasks = useMemo(
-    () => tasks.filter((task) => task.status === 'pending' && task.dueDate <= today),
-    [tasks, today],
-  )
-  const upcoming = useMemo(
-    () =>
-      tasks
-        .filter((task) => task.status === 'pending' && task.dueDate > today)
-        .sort((a, b) => a.dueDate.localeCompare(b.dueDate)),
-    [tasks, today],
-  )
+  // Overdue tasks first (oldest first), then today's.
+  const todayTasks = useMemo(() => getTodayAndOverdueTasks(tasks, today), [tasks, today])
+  const upcoming = useMemo(() => getUpcomingTasks(tasks, today), [tasks, today])
   const isEmpty = subjects.length === 0 && tasks.length === 0
 
   function handleToggle(taskId: string) {

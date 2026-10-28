@@ -64,15 +64,21 @@ export function useTaskFilters(subjects: Subject[]) {
     [params, setParams],
   )
 
-  const resetFilters = useCallback(() => setParams({}, { replace: true }), [setParams])
+  // "Clear filters" clears the filters only; the chosen sort order stays.
+  const resetFilters = useCallback(() => {
+    const next = new URLSearchParams()
+    const sortValue = params.get(PARAM_NAMES.sort)
+    if (sortValue) next.set(PARAM_NAMES.sort, sortValue)
+    setParams(next, { replace: true })
+  }, [params, setParams])
 
   const hasActiveFilters =
     filters.query.trim() !== '' ||
     filters.subjectId !== 'all' ||
     filters.priority !== 'all' ||
     filters.type !== 'all' ||
-    filters.tab !== 'all'
-    || filters.overdue
+    filters.tab !== 'all' ||
+    filters.overdue
 
   return { filters, sort, updateFilters, resetFilters, hasActiveFilters }
 }

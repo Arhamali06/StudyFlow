@@ -56,7 +56,15 @@ export function isTaskOverdue(task: Task, today: string): boolean {
 }
 
 /** Applies search + filters + tab. Returns a new array. */
-export function filterTasks(tasks: Task[], filters: TaskFilterState): Task[] {
+/**
+ * `today` is a parameter (not read from the clock here) so callers can pass the
+ * same value the rest of the screen uses and re-filter when the day changes.
+ */
+export function filterTasks(
+  tasks: Task[],
+  filters: TaskFilterState,
+  today: string = getTodayString(),
+): Task[] {
   const query = filters.query.trim().toLowerCase()
 
   return tasks.filter((task) => {
@@ -65,14 +73,18 @@ export function filterTasks(tasks: Task[], filters: TaskFilterState): Task[] {
     if (filters.priority !== 'all' && task.priority !== filters.priority) return false
     if (filters.type !== 'all' && task.type !== filters.type) return false
     if (filters.tab !== 'all' && task.status !== filters.tab) return false
-    if (filters.overdue && !isTaskOverdue(task, getTodayString())) return false
+    if (filters.overdue && !isTaskOverdue(task, today)) return false
     return true
   })
 }
 
 /** How many tasks each tab would show, given the other filters. */
-export function countTasksByTab(tasks: Task[], filters: TaskFilterState): Record<TaskTab, number> {
-  const matching = filterTasks(tasks, { ...filters, tab: 'all' })
+export function countTasksByTab(
+  tasks: Task[],
+  filters: TaskFilterState,
+  today: string = getTodayString(),
+): Record<TaskTab, number> {
+  const matching = filterTasks(tasks, { ...filters, tab: 'all' }, today)
   const completed = matching.filter((task) => task.status === 'completed').length
   return { all: matching.length, pending: matching.length - completed, completed }
 }

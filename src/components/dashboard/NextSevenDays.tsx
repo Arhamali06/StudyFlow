@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { addDays, formatDate, parseDateString, toDateString } from '../../lib/dates'
+import { addDays, formatWeekdayShort, parseDateString, toDateString } from '../../lib/dates'
 import type { Task } from '../../types'
 
 interface NextSevenDaysProps {
@@ -14,7 +14,7 @@ export default function NextSevenDays({ tasks, today }: NextSevenDaysProps) {
     const value = toDateString(addDays(date, index))
     return {
       date: value,
-      label: index === 0 ? 'Today' : formatDate(value).split(',')[0],
+      label: index === 0 ? 'Today' : formatWeekdayShort(value),
       count: tasks.filter((task) => task.status === 'pending' && task.dueDate === value).length,
     }
   })

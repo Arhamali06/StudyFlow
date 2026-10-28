@@ -15,8 +15,10 @@ import type { Task } from '../types'
 
 /** Whole-number percentage from 0 to 100 (0 when there is nothing to measure). */
 export function calculatePercentage(part: number, total: number): number {
-  if (total <= 0) return 0
-  return Math.round((part / total) * 100)
+  if (total <= 0 || part <= 0) return 0
+  if (part >= total) return 100
+  // Partial progress must never round up to "100%" (or down to "0%").
+  return Math.min(99, Math.max(1, Math.round((part / total) * 100)))
 }
 
 export interface SubjectProgress {
@@ -90,7 +92,7 @@ export function getTaskCounts(tasks: Task[], today: string): TaskCounts {
   return { total: tasks.length, pending, completed, overdue }
 }
 
-/** The 7 day-strings (YYYY-MM-DD) for the Sun\u2013Sat week containing `today`. */
+/** The 7 day-strings (YYYY-MM-DD) for the Sun–Sat week containing `today`. */
 export function getWeekDays(today: string): string[] {
   const date = parseDateString(today)
   if (!date) return []
@@ -336,6 +338,16 @@ export function getProgressDateRange(today: string, range: ProgressRange): DateR
   return { start: toDateString(addDays(date, -days)), end: today }
 }
 
+/**
+ * Window used for due-date based figures (ring, subject rows, type/priority
+ * breakdowns). It starts at the same day as the activity window but has no end
+ * date, so upcoming tasks still count as pending work instead of disappearing.
+ */
+export function getProgressDueRange(today: string, range: ProgressRange): DateRange {
+  const activity = getProgressDateRange(today, range)
+  return { start: activity.start, end: '9999-12-31' }
+}
+
 export function isDateInRange(date: string, range: DateRange): boolean {
   return (range.start === null || compareDateStrings(date, range.start) >= 0) &&
     compareDateStrings(date, range.end) <= 0
@@ -377,8 +389,10 @@ export function getStreakSummary(tasks: Task[], today: string): StreakSummary {
   const todayDate = parseDateString(today)
   if (!todayDate) return { current: 0, longest: 0 }
 
+  // A streak is still alive if the last completion was yesterday: the user
+  // just hasn't done anything today yet, so start counting from yesterday.
   let current = 0
-  let cursor = todayDate
+  let cursor = completedDays.has(toDateString(todayDate)) ? todayDate : addDays(todayDate, -1)
   while (completedDays.has(toDateString(cursor))) {
     current += 1
     cursor = addDays(cursor, -1)
@@ -412,48 +426,22 @@ export function getBestCompletionWeek(tasks: Task[]): { weekStart: string | null
   return best
 }
 
-export function getCompletionBreakdown(
-  tasks: Task[],
-  range: DateRange,
-  field: 'type' | 'priority',
-): CompletionBreakdown[] {
-  const counts = new Map<string, number>()
-  for (const task of getRangeCompletedTasks(tasks, range)) {
-    const key = task[field]
-    counts.set(key, (counts.get(key) ?? 0) + 1)
-  }
-
-  return [...counts.entries()]
-    .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-}
-
-export function getTypeProgressBreakdown(
-  dueTasks: Task[],
-  activityTasks: Task[],
-): TypeProgressBreakdown[] {
+export function getTypeProgressBreakdown(dueTasks: Task[]): TypeProgressBreakdown[] {
   const counts = new Map<string, TypeProgressBreakdown>()
   for (const task of dueTasks) {
     const current = counts.get(task.type) ?? { label: task.type, completed: 0, total: 0 }
     current.total += 1
-    counts.set(task.type, current)
-  }
-  for (const task of activityTasks) {
-    const current = counts.get(task.type) ?? { label: task.type, completed: 0, total: 0 }
-    current.completed += 1
+    if (task.status === 'completed') current.completed += 1
     counts.set(task.type, current)
   }
   return [...counts.values()].sort((a, b) => a.label.localeCompare(b.label))
 }
 
-export function getPriorityProgressBreakdown(
-  dueTasks: Task[],
-  activityTasks: Task[],
-): PriorityProgressBreakdown[] {
+export function getPriorityProgressBreakdown(dueTasks: Task[]): PriorityProgressBreakdown[] {
   const order = ['high', 'medium', 'low']
   return order.map((label) => ({
     label,
-    completed: activityTasks.filter((task) => task.priority === label).length,
+    completed: dueTasks.filter((task) => task.priority === label && task.status === 'completed').length,
     pending: dueTasks.filter((task) => task.priority === label && task.status === 'pending').length,
   }))
 }

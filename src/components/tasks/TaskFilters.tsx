@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Filter, Search } from 'lucide-react'
+import { Filter, Search, X } from 'lucide-react'
 import Button from '../ui/Button'
 import Select from '../ui/Select'
 import {
@@ -169,6 +169,17 @@ export default function TaskFilters({
           <p className="results-count" aria-live="polite">
             Showing {visibleCount} of {totalCount} {totalCount === 1 ? 'task' : 'tasks'}
           </p>
+          {filters.overdue && (
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<X size={14} aria-hidden="true" />}
+              aria-label="Remove the overdue-only filter"
+              onClick={() => onChange({ overdue: false })}
+            >
+              Overdue only
+            </Button>
+          )}
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={onReset}>
               Clear filters

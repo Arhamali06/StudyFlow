@@ -6,7 +6,10 @@ import { NAV_GROUPS } from './navigation'
 interface SidebarProps {
   /** Only matters on tablet/mobile, where the sidebar is a slide-in drawer. */
   isOpen: boolean
+  /** Close button: the layout also puts focus back on the menu button. */
   onClose: () => void
+  /** A link was followed: close the drawer without moving focus. */
+  onNavigate: () => void
 }
 
 function BrandMark() {
@@ -25,14 +28,13 @@ function BrandMark() {
   )
 }
 
-const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen, onClose }, ref) {
+const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen, onClose, onNavigate }, ref) {
   return (
     <aside
       ref={ref}
       id="app-sidebar"
       className={`sidebar${isOpen ? ' is-open' : ''}`}
       aria-label="Sidebar"
-      aria-modal={isOpen || undefined}
     >
       <div className="sidebar__top">
         <div className="brand">
@@ -60,7 +62,7 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen,
                     to={path}
                     end={path === '/'}
                     className="nav-link"
-                    onClick={onClose}
+                    onClick={onNavigate}
                   >
                     <Icon size={22} strokeWidth={1.75} aria-hidden="true" />
                     <span>{label}</span>
