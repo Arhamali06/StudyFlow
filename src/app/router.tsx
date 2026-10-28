@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import AppLayout from '../components/layout/AppLayout'
 import DashboardPage from '../pages/DashboardPage'
 import TasksPage from '../pages/TasksPage'
@@ -8,10 +8,16 @@ import ProgressPage from '../pages/ProgressPage'
 import SettingsPage from '../pages/SettingsPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import RouteError from '../components/layout/RouteError'
+import LoginPage from '../pages/LoginPage'
+import SignupPage from '../pages/SignupPage'
+import { PublicOnly, RequireAuth } from '../components/auth/RouteGuards'
 
 export const router = createBrowserRouter([
-  {
-    path: '/',
+  { element: <PublicOnly />, children: [
+    { path: '/login', element: <LoginPage /> },
+    { path: '/signup', element: <SignupPage /> },
+  ] },
+  { element: <RequireAuth />, children: [{ path: '/', element: <Navigate to="/dashboard" replace /> }, {
     element: <AppLayout />,
     // Errors in the layout itself (sidebar/header) fall back to this screen.
     errorElement: <RouteError />,
@@ -21,7 +27,7 @@ export const router = createBrowserRouter([
         // the sidebar and header on screen.
         errorElement: <RouteError />,
         children: [
-          { index: true, element: <DashboardPage /> },
+          { path: 'dashboard', element: <DashboardPage /> },
           { path: 'tasks', element: <TasksPage /> },
           { path: 'subjects', element: <SubjectsPage /> },
           { path: 'calendar', element: <CalendarPage /> },
@@ -31,5 +37,5 @@ export const router = createBrowserRouter([
         ],
       },
     ],
-  },
+  }] },
 ])

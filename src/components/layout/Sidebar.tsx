@@ -60,7 +60,7 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen,
                 <li key={path}>
                   <NavLink
                     to={path}
-                    end={path === '/'}
+                    end={path === '/dashboard'}
                     className="nav-link"
                     onClick={onNavigate}
                   >
