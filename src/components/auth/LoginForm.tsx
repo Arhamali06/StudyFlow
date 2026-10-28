@@ -123,10 +123,10 @@ export function LoginForm() {
         <p className="auth-footer">
           New to StudyFlow? <Link to="/signup">Create an account</Link>
         </p>
-        {/* <p className="auth-demo">
+        <p className="auth-demo">
           Demo login: {AUTH_CONFIG.email} / {AUTH_CONFIG.password}{' '}
           <button type="button" className="auth-link auth-link--small" onClick={fillDemoAccount}>Fill it in</button>
-        </p> */}
+        </p>
       </div>
     </form>
   )
