@@ -1,7 +1,7 @@
 # StudyFlow
 
 **A personal study planner and academic progress tracker for students.**
-Organize subjects, plan tasks and deadlines, see what to do next, and track how your study habits evolve over time, all in the browser with no account and no backend.
+Organize subjects, plan tasks and deadlines, see what to do next, and track how your study habits evolve over time.
 
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)
@@ -9,15 +9,7 @@ Organize subjects, plan tasks and deadlines, see what to do next, and track how 
 ![Frontend only](https://img.shields.io/badge/backend-none-lightgrey)
 
 <!-- TODO: add your deployed link and screenshots before publishing -->
-**Live demo:** _add your deployed URL here_
-
-| Dashboard | Progress |
-| --- | --- |
-| _screenshot_ | _screenshot_ |
-
-| My Tasks | Calendar |
-| --- | --- |
-| _screenshot_ | _screenshot_ |
+**Live demo:** https://study-flow-zeta-tawny.vercel.app/
 
 ---
 
