@@ -1669,7 +1669,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  font-size: var(--text-stat);
+  font-size: var(--text-xl);
   font-weight: 400;
 }
 
