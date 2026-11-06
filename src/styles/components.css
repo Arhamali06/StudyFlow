@@ -292,11 +292,6 @@
   margin-top: var(--space-5);
 }
 
-/* ==========================================================================
-   Phase 3 + 4 additions — modal, forms, badges, progress, toasts, etc.
-   (Everything above this line is unchanged from Phase 1.)
-   ========================================================================== */
-
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -862,10 +857,6 @@
 .search {
   min-width: 0;
 }
-
-/* ==========================================================================
-   Phase 5 — stat card links, dark-card button, chart tooltip
-   ========================================================================== */
 
 /* Stat card with a link overlay */
 

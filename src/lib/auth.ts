@@ -24,13 +24,13 @@ export function checkCredentials(email: string, password: string) {
   return email.trim().toLowerCase() === AUTH_CONFIG.email && password === AUTH_CONFIG.password
 }
 
-export function setAuthenticated(remember: boolean) {
-  // Clear first so an older "remember me" flag can never outlive a session-only login.
+export function setAuthenticated(remember: boolean): boolean {
   clearAuthentication()
   try {
     ;(remember ? localStorage : sessionStorage).setItem(AUTH_CONFIG.storageKey, 'true')
+    return true
   } catch {
-    /* Storage can be blocked (private mode). The user simply stays logged out. */
+    return false
   }
 }
 

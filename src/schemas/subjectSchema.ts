@@ -4,12 +4,7 @@ import type { Subject } from '../types'
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
 
-/**
- * Describes a valid stored Subject. It is used to:
- *  - validate data read from localStorage, and
- *  - validate every subject before it enters the app state.
- * Phase 3 builds the subject form schema from this one.
- */
+/** Schema for subjects stored in app state and localStorage. */
 export const subjectSchema = z.object({
   id: z.string().min(1),
   name: z

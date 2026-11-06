@@ -44,10 +44,6 @@ export function normalizeStoredTask(task: Task): Task {
   return task.completedAt ? task : { ...task, completedAt: task.createdAt }
 }
 
-/* ==========================================================================
-   Phase 4 — overdue check, filtering, sorting and due-date wording
-   ========================================================================== */
-
 const PRIORITY_RANK: Record<TaskPriority, number> = { high: 3, medium: 2, low: 1 }
 
 /** A task is overdue when it is still pending and its due date is before today. */

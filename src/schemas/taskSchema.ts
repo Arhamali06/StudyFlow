@@ -11,12 +11,7 @@ import type { Task } from '../types'
 
 const timestamp = z.string().refine(isValidTimestamp, 'Invalid timestamp')
 
-/**
- * Describes a valid stored Task. It is used to:
- *  - validate data read from localStorage, and
- *  - validate every task before it enters the app state.
- * Phase 4 builds the task form schema from this one.
- */
+/** Schema for tasks stored in app state and localStorage. */
 export const taskSchema = z.object({
   id: z.string().min(1),
   title: z

@@ -19,12 +19,9 @@ export const router = createBrowserRouter([
   ] },
   { element: <RequireAuth />, children: [{ path: '/', element: <Navigate to="/dashboard" replace /> }, {
     element: <AppLayout />,
-    // Errors in the layout itself (sidebar/header) fall back to this screen.
     errorElement: <RouteError />,
     children: [
       {
-        // A pathless route whose only job is to catch page errors while keeping
-        // the sidebar and header on screen.
         errorElement: <RouteError />,
         children: [
           { path: 'dashboard', element: <DashboardPage /> },

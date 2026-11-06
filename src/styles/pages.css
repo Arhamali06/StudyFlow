@@ -323,13 +323,6 @@
   }
 }
 
-/* Weekly chart card */
-
-/* ==========================================================================
-   Phase 3 + 4 additions — subjects page and tasks page.
-   (Everything above this line is unchanged from Phase 1.)
-   ========================================================================== */
-
 /* ----- Subjects ----- */
 
 .subject-grid {
@@ -1229,8 +1222,6 @@
   color: var(--color-on-dark);
 }
 
-/* Allow the Phase 5 split columns and their rows to shrink below min-content. */
-
 .dash-today__item {
   flex-wrap: wrap;
 }
@@ -1245,10 +1236,6 @@
 .dash-today__due.is-overdue {
   color: color-mix(in srgb, var(--color-danger) 80%, var(--color-ink));
 }
-
-/* ==========================================================================
-   Phase 6 — Calendar
-   ========================================================================== */
 
 .calendar-layout {
   display: grid;
@@ -1619,7 +1606,6 @@
   max-width: 100%;
 }
 
-/* Phase 7 — Progress page additions. */
 .progress-page {
   display: grid;
   gap: var(--space-4);

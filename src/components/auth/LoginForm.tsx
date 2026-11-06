@@ -40,7 +40,10 @@ export function LoginForm() {
       focusField('login-password')
       return
     }
-    setAuthenticated(remember)
+    if (!setAuthenticated(remember)) {
+      showToast('Unable to save your login in this browser. Check storage permissions and try again.', 'error')
+      return
+    }
     navigate('/dashboard', { replace: true })
   }
 

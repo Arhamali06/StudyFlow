@@ -58,7 +58,7 @@ export const SUBJECT_COLORS = [
 
 export const DEFAULT_SUBJECT_COLOR = SUBJECT_COLORS[0].value
 
-/** Text length limits (also used for form validation in later phases). */
+/** Text length limits shared by schemas and form controls. */
 export const TASK_TITLE_MAX_LENGTH = 100
 export const TASK_DESCRIPTION_MAX_LENGTH = 500
 export const SUBJECT_NAME_MAX_LENGTH = 40

@@ -13,11 +13,6 @@ interface TaskModalProps {
   onClose: () => void
 }
 
-/**
- * Add / edit task dialog. Mount it only while it should be open.
- * It is reusable: the Dashboard (quick add) and Calendar (add on a date)
- * will open this same dialog in later phases.
- */
 export default function TaskModal({ task, initialValues, onClose }: TaskModalProps) {
   const { subjects, addTask, updateTask } = useAppData()
   const { showToast } = useToast()

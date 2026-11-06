@@ -61,10 +61,6 @@ export function getProgressForSubject(
   return map.get(subjectId) ?? EMPTY_PROGRESS
 }
 
-/* ==========================================================================
-   Phase 5 — dashboard statistics
-   ========================================================================== */
-
 /** Counts tasks by status and identifies overdue ones. */
 export interface TaskCounts {
   total: number

@@ -1,8 +1,7 @@
 import { CalendarCheck, Flame, Lightbulb, Target, TrendingUp } from 'lucide-react'
-import { useState, type CSSProperties } from 'react'
+import { lazy, Suspense, useState, type CSSProperties } from 'react'
 import PageHeader from '../components/layout/PageHeader'
 import OverallProgress from '../components/progress/OverallProgress'
-import ProgressCharts from '../components/progress/ProgressCharts'
 import ProgressEmptyState from '../components/progress/ProgressEmptyState'
 import SubjectProgressRows from '../components/progress/SubjectProgressRows'
 import Badge from '../components/ui/Badge'
@@ -13,7 +12,8 @@ import { useStudyStatistics } from '../hooks/useStudyStatistics'
 import { useToast } from '../hooks/useToast'
 import type { ProgressRange } from '../lib/statistics'
 
-// These are rolling windows ending today, so the labels say exactly that.
+const ProgressCharts = lazy(() => import('../components/progress/ProgressCharts'))
+
 const RANGE_OPTIONS: Array<{ value: ProgressRange; label: string; description: string }> = [
   { value: 'week', label: '7 days', description: 'Last 7 days' },
   { value: 'month', label: '30 days', description: 'Last 30 days' },
@@ -103,7 +103,9 @@ export default function ProgressPage() {
         )}
         <div className="progress-columns">
           <div className="progress-column">
-            <ProgressCharts trend={stats.trend} prefersReducedMotion={prefersReducedMotion} />
+            <Suspense fallback={<section className="card progress-chart-card" aria-busy="true">Loading chart…</section>}>
+              <ProgressCharts trend={stats.trend} prefersReducedMotion={prefersReducedMotion} />
+            </Suspense>
             <SubjectProgressRows subjects={subjects} progressMap={stats.subjectProgress} />
           </div>
           <div className="progress-column">
