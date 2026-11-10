@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/authContext'
 import { useToast } from '../../hooks/useToast'
-import { AUTH_CONFIG, checkCredentials, EMAIL_PATTERN, setAuthenticated } from '../../lib/auth'
 import { focusField } from './focusField'
 import { PasswordInput } from './PasswordInput'
 
@@ -12,6 +12,7 @@ interface Errors {
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const { signIn } = useAuth()
   const { showToast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -19,14 +20,16 @@ export function LoginForm() {
   const [errors, setErrors] = useState<Errors>({})
   const [failed, setFailed] = useState(false)
   const [shaking, setShaking] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault()
+    if (loading) return
     setFailed(false)
 
     const next: Errors = {}
     if (!email.trim()) next.email = 'Email is required.'
-    else if (!EMAIL_PATTERN.test(email.trim())) next.email = 'Enter a valid email address.'
+    else if (!/^\S+@\S+\.\S+$/.test(email.trim())) next.email = 'Enter a valid email address.'
     if (!password) next.password = 'Password is required.'
     setErrors(next)
 
@@ -34,24 +37,16 @@ export function LoginForm() {
       focusField(next.email ? 'login-email' : 'login-password')
       return
     }
-    if (!checkCredentials(email, password)) {
+    setLoading(true)
+    const result = await signIn(email.trim(), password)
+    setLoading(false)
+    if (result.error) {
       setFailed(true)
       setShaking(true)
       focusField('login-password')
       return
     }
-    if (!setAuthenticated(remember)) {
-      showToast('Unable to save your login in this browser. Check storage permissions and try again.', 'error')
-      return
-    }
     navigate('/dashboard', { replace: true })
-  }
-
-  function fillDemoAccount() {
-    setEmail(AUTH_CONFIG.email)
-    setPassword(AUTH_CONFIG.password)
-    setErrors({})
-    setFailed(false)
   }
 
   return (
@@ -120,15 +115,11 @@ export function LoginForm() {
 
       {failed && <p className="auth-error auth-error--form" role="alert">Incorrect email or password.</p>}
 
-      <button className="auth-submit" type="submit">Log in</button>
+      <button className="auth-submit" type="submit" disabled={loading}>{loading ? 'Logging in…' : 'Log in'}</button>
 
       <div className="auth-meta">
         <p className="auth-footer">
           New to StudyFlow? <Link to="/signup">Create an account</Link>
-        </p>
-        <p className="auth-demo">
-          Demo login: {AUTH_CONFIG.email} / {AUTH_CONFIG.password}{' '}
-          <button type="button" className="auth-link auth-link--small" onClick={fillDemoAccount}>Fill it in</button>
         </p>
       </div>
     </form>

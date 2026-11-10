@@ -1,5 +1,5 @@
 import { CalendarCheck, Flame, Lightbulb, Target, TrendingUp } from 'lucide-react'
-import { lazy, Suspense, useState, type CSSProperties } from 'react'
+import { Component, lazy, Suspense, useState, type CSSProperties, type ErrorInfo, type ReactNode } from 'react'
 import PageHeader from '../components/layout/PageHeader'
 import OverallProgress from '../components/progress/OverallProgress'
 import ProgressEmptyState from '../components/progress/ProgressEmptyState'
@@ -13,6 +13,28 @@ import { useToast } from '../hooks/useToast'
 import type { ProgressRange } from '../lib/statistics'
 
 const ProgressCharts = lazy(() => import('../components/progress/ProgressCharts'))
+
+interface ChartErrorBoundaryState {
+  hasError: boolean
+}
+
+class ChartErrorBoundary extends Component<{ children: ReactNode }, ChartErrorBoundaryState> {
+  state: ChartErrorBoundaryState = { hasError: false }
+
+  static getDerivedStateFromError(): ChartErrorBoundaryState {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('The progress chart could not be rendered.', error, errorInfo)
+  }
+
+  render() {
+    return this.state.hasError
+      ? <section className="card progress-chart-card"><p className="progress-chart__empty">The completion chart is unavailable right now.</p></section>
+      : this.props.children
+  }
+}
 
 const RANGE_OPTIONS: Array<{ value: ProgressRange; label: string; description: string }> = [
   { value: 'week', label: '7 days', description: 'Last 7 days' },
@@ -103,9 +125,11 @@ export default function ProgressPage() {
         )}
         <div className="progress-columns">
           <div className="progress-column">
-            <Suspense fallback={<section className="card progress-chart-card" aria-busy="true">Loading chart…</section>}>
-              <ProgressCharts trend={stats.trend} prefersReducedMotion={prefersReducedMotion} />
-            </Suspense>
+            <ChartErrorBoundary>
+              <Suspense fallback={<section className="card progress-chart-card" aria-busy="true">Loading chart…</section>}>
+                <ProgressCharts trend={stats.trend} prefersReducedMotion={prefersReducedMotion} />
+              </Suspense>
+            </ChartErrorBoundary>
             <SubjectProgressRows subjects={subjects} progressMap={stats.subjectProgress} />
           </div>
           <div className="progress-column">

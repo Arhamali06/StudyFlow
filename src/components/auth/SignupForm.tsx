@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../context/authContext'
 import { useToast } from '../../hooks/useToast'
-import { EMAIL_PATTERN } from '../../lib/auth'
 import { focusField } from './focusField'
 import { PasswordInput } from './PasswordInput'
 import { PasswordStrength } from './PasswordStrength'
@@ -24,6 +24,7 @@ const FIELD_IDS: Record<Field, string> = {
 
 export function SignupForm() {
   const navigate = useNavigate()
+  const { signUp } = useAuth()
   const { showToast } = useToast()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -50,7 +51,7 @@ export function SignupForm() {
 
     const next: Errors = {}
     if (name.trim().length < 2) next.name = 'Enter at least 2 characters.'
-    if (!EMAIL_PATTERN.test(email.trim())) next.email = 'Enter a valid email address.'
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) next.email = 'Enter a valid email address.'
     if (password.length < 8 || !/\d/.test(password)) next.password = 'Use at least 8 characters and one number.'
     if (!terms) next.terms = 'Please agree to the Terms and Privacy Policy.'
     setErrors(next)
@@ -61,15 +62,16 @@ export function SignupForm() {
       return
     }
 
-    // There is no database yet, so nothing is saved. We only simulate the request.
     setLoading(true)
-    timers.current.push(
-      window.setTimeout(() => {
-        setLoading(false)
-        setSuccess(true)
-        timers.current.push(window.setTimeout(() => navigate('/login'), 1500))
-      }, 800),
-    )
+    void signUp(name, email.trim(), password).then(({ error }) => {
+      setLoading(false)
+      if (error) {
+        setErrors({ email: error })
+        return
+      }
+      setSuccess(true)
+      timers.current.push(window.setTimeout(() => navigate('/login'), 1500))
+    })
   }
 
   const demoNotice = () => showToast("Terms and Privacy pages aren't available in this demo.", 'info')
@@ -161,7 +163,7 @@ export function SignupForm() {
 
       {success && (
         <p className="auth-success" role="status">
-          Account created! Backend isn't connected yet, so please log in with the demo account.
+          Account created! You can now log in with your new account.
         </p>
       )}
 

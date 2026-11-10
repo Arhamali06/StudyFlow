@@ -1,7 +1,7 @@
 import { forwardRef } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { LogOut, X } from 'lucide-react'
-import { clearAuthentication } from '../../lib/auth'
+import { useAuth } from '../../context/authContext'
 import { NAV_GROUPS } from './navigation'
 
 interface SidebarProps {
@@ -31,9 +31,14 @@ function BrandMark() {
 
 const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen, onClose, onNavigate }, ref) {
   const navigate = useNavigate()
+  const { signOut } = useAuth()
 
-  function logout() {
-    clearAuthentication()
+  async function logout() {
+    const { error } = await signOut()
+    if (error) {
+      console.error('Unable to sign out from Supabase.', error)
+      return
+    }
     navigate('/login', { replace: true })
   }
 
