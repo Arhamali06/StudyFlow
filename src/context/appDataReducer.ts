@@ -16,7 +16,6 @@ export type AppDataAction =
   | { type: 'task/updated'; task: Task }
   | { type: 'task/deleted'; id: string }
   | { type: 'userName/set'; name: string }
-  | { type: 'sample/loaded'; subjects: Subject[]; tasks: Task[] }
   | { type: 'data/cleared'; defaultUserName: string }
   | { type: 'data/replaced'; state: AppData }
 
@@ -75,13 +74,6 @@ export function appDataReducer(state: AppData, action: AppDataAction): AppData {
 
     case 'userName/set':
       return { ...state, userName: action.name }
-
-    case 'sample/loaded':
-      return {
-        ...state,
-        subjects: [...state.subjects, ...action.subjects],
-        tasks: [...state.tasks, ...action.tasks],
-      }
 
     case 'data/cleared':
       return { subjects: [], tasks: [], userName: action.defaultUserName }

@@ -4,7 +4,7 @@ import type { Subject } from '../types'
 
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/
 
-/** Schema for subjects stored in app state and localStorage. */
+/** Schema for subjects returned by Supabase and used in app state. */
 export const subjectSchema = z.object({
   id: z.string().min(1),
   name: z
@@ -13,7 +13,6 @@ export const subjectSchema = z.object({
     .min(1, 'Subject name is required')
     .max(SUBJECT_NAME_MAX_LENGTH, `Use ${SUBJECT_NAME_MAX_LENGTH} characters or fewer`),
   color: z.string().regex(HEX_COLOR, 'Choose a valid color'),
-  isSample: z.boolean().optional(),
 }) satisfies z.ZodType<Subject>
 
 /** The fields a person fills in on the subject form. */

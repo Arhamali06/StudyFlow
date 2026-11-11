@@ -9,7 +9,6 @@ import StatCard from '../components/ui/StatCard'
 import { useAppData } from '../hooks/useAppData'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useStudyStatistics } from '../hooks/useStudyStatistics'
-import { useToast } from '../hooks/useToast'
 import type { ProgressRange } from '../lib/statistics'
 
 const ProgressCharts = lazy(() => import('../components/progress/ProgressCharts'))
@@ -49,25 +48,18 @@ const formatLabel = (label: string) => label.replace(/([a-z])([A-Z])/g, '$1 $2')
 
 export default function ProgressPage() {
   useDocumentTitle('Progress')
-  const { subjects, tasks, loadSampleData } = useAppData()
-  const { showToast } = useToast()
+  const { subjects, tasks } = useAppData()
   const [range, setRange] = useState<ProgressRange>('all')
   const [prefersReducedMotion] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
   const stats = useStudyStatistics(tasks, range)
 
-  function handleLoadSample() {
-    const result = loadSampleData()
-    if (result.ok) showToast('Sample data loaded')
-    else showToast(result.error, 'error')
-  }
-
   if (subjects.length === 0 && tasks.length === 0) {
     return (
       <>
         <PageHeader title="Progress" subtitle="See how your study habits grow over time." />
-        <ProgressEmptyState onLoadSample={handleLoadSample} />
+        <ProgressEmptyState />
       </>
     )
   }

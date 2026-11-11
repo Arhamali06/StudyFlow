@@ -43,7 +43,7 @@ function getTaskGroup(task: Task, today: string): TaskGroupKey {
 
 export default function TasksPage() {
   useDocumentTitle('My Tasks')
-  const { subjects, tasks, toggleTaskCompleted, deleteTask, loadSampleData } = useAppData()
+  const { subjects, tasks, toggleTaskCompleted, deleteTask } = useAppData()
   const { showToast } = useToast()
   const today = useToday()
   const { filters, sort, updateFilters, resetFilters, hasActiveFilters } = useTaskFilters(subjects)
@@ -127,20 +127,14 @@ export default function TasksPage() {
     return filters.query.trim() !== '' || groups.length === 1
   }
 
-  function handleToggle(task: Task) {
-    const result = toggleTaskCompleted(task.id)
+  async function handleToggle(task: Task) {
+    const result = await toggleTaskCompleted(task.id)
     if (!result.ok) showToast(result.error, 'error')
     else if (result.data.status === 'completed') showToast(`Completed “${task.title}”`)
   }
 
-  function handleLoadSample() {
-    const result = loadSampleData()
-    if (result.ok) showToast('Sample data loaded')
-    else showToast(result.error, 'error')
-  }
-
-  function handleConfirmDelete(task: Task) {
-    const result = deleteTask(task.id)
+  async function handleConfirmDelete(task: Task) {
+    const result = await deleteTask(task.id)
     setDeletingId(null)
     if (result.ok) {
       if (selectedId === task.id) setSelectedId(null)
@@ -182,9 +176,6 @@ export default function TasksPage() {
                 <Link className="btn btn--primary btn--md" to="/subjects">
                   Go to subjects
                 </Link>
-                <Button variant="secondary" onClick={handleLoadSample}>
-                  Load sample data
-                </Button>
               </div>
             }
           />

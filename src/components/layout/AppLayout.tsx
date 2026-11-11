@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Header from './Header'
+import { useAppData } from '../../hooks/useAppData'
 
 const MENU_BUTTON_ID = 'app-menu-button'
 
@@ -12,6 +13,7 @@ function restoreMenuButtonFocus() {
 
 export default function AppLayout() {
   const { pathname } = useLocation()
+  const { loading, error } = useAppData()
 
   // We remember *which page* the drawer was opened on. If the page changes,
   // the drawer is automatically considered closed — no effect needed.
@@ -82,7 +84,7 @@ export default function AppLayout() {
       <div className="app-main">
         <Header onOpenMenu={openMenu} isMenuOpen={isMenuOpen} />
         <main id="main-content" className="app-content" tabIndex={-1}>
-          <Outlet />
+          {loading ? <p role="status">Loading your study data…</p> : error ? <p role="alert">{error}</p> : <Outlet />}
         </main>
       </div>
     </div>

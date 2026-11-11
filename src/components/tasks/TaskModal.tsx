@@ -17,8 +17,8 @@ export default function TaskModal({ task, initialValues, onClose }: TaskModalPro
   const { subjects, addTask, updateTask } = useAppData()
   const { showToast } = useToast()
 
-  function handleSubmit(values: TaskFormValues): string | null {
-    const result = task ? updateTask(task.id, values) : addTask(values)
+  async function handleSubmit(values: TaskFormValues): Promise<string | null> {
+    const result = await (task ? updateTask(task.id, values) : addTask(values))
     if (!result.ok) return result.error
 
     showToast(task ? `Updated “${result.data.title}”` : `Added “${result.data.title}”`)

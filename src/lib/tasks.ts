@@ -34,8 +34,7 @@ export function buildUpdatedTask(previous: Task, changes: TaskChanges, now: stri
 }
 
 /**
- * Repairs a task read from storage whose status and completion time disagree
- * (for example, if someone edited localStorage by hand).
+ * Repairs a task whose status and completion time disagree.
  */
 export function normalizeStoredTask(task: Task): Task {
   if (task.status === 'pending') {

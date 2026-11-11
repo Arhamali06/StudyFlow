@@ -15,7 +15,7 @@ interface SubjectFormProps {
   /** All current subjects (used to stop duplicate names and suggest a color). */
   subjects: Subject[]
   /** Return an error message to show in the form, or null when saving worked. */
-  onSubmit: (values: SubjectFormValues) => string | null
+  onSubmit: (values: SubjectFormValues) => Promise<string | null>
   onCancel: () => void
 }
 
@@ -41,8 +41,8 @@ export default function SubjectForm({ subject, subjects, onSubmit, onCancel }: S
     },
   })
 
-  const submit = handleSubmit((values) => {
-    const error = onSubmit(values)
+  const submit = handleSubmit(async (values) => {
+    const error = await onSubmit(values)
     if (error) setError('root.server', { message: error })
   })
 

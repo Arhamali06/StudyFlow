@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
-import Badge from '../ui/Badge'
 import ProgressBar from '../ui/ProgressBar'
 import { getProgressForSubject, type SubjectProgress } from '../../lib/statistics'
 import type { Subject } from '../../types'
@@ -53,7 +52,6 @@ export default function SubjectProgressList({
                     aria-hidden="true"
                   />
                   <span className="dash-subjects__name">{subject.name}</span>
-                  {subject.isSample && <Badge>Sample</Badge>}
                   <span className="dash-subjects__percent">
                     {progress.percent}%
                   </span>

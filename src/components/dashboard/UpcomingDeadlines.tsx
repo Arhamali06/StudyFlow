@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import Badge from '../ui/Badge'
 import { getDueInfo } from '../../lib/tasks'
 import type { Subject, Task } from '../../types'
 
@@ -53,7 +52,6 @@ export default function UpcomingDeadlines({
                 <span className="dash-deadlines__title">{task.title}</span>
                 <span className="dash-deadlines__due">
                   {due.label}
-                  {task.isSample && <Badge>Sample</Badge>}
                 </span>
               </li>
             )

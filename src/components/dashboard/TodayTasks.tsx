@@ -64,7 +64,6 @@ export default function TodayTasks({ tasks, subjects, today, onToggle }: TodayTa
                     {due.label}
                   </span>
                   {overdue && <Badge tone="danger">Overdue</Badge>}
-                  {task.isSample && <Badge>Sample</Badge>}
                 </span>
               </li>
             )

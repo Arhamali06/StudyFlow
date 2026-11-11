@@ -23,7 +23,7 @@ interface TaskFormProps {
   initialValues?: Partial<TaskFormValues>
   subjects: Subject[]
   /** Return an error message to show in the form, or null when saving worked. */
-  onSubmit: (values: TaskFormValues) => string | null
+  onSubmit: (values: TaskFormValues) => Promise<string | null>
   onCancel: () => void
 }
 
@@ -47,8 +47,8 @@ export default function TaskForm({ task, initialValues, subjects, onSubmit, onCa
     },
   })
 
-  const submit = handleSubmit((values) => {
-    const error = onSubmit(values)
+  const submit = handleSubmit(async (values) => {
+    const error = await onSubmit(values)
     if (error) setError('root.server', { message: error })
   })
 

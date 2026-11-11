@@ -21,7 +21,7 @@ import { getTodayAndOverdueTasks, getUpcomingTasks } from '../lib/statistics'
 
 export default function DashboardPage() {
   useDocumentTitle('Dashboard')
-  const { subjects, tasks, userName, toggleTaskCompleted, loadSampleData } = useAppData()
+  const { subjects, tasks, userName, toggleTaskCompleted } = useAppData()
   const { showToast } = useToast()
   const { today, counts, nextUp, streaks } = useStudyStatistics(tasks)
   const [isAddingTask, setIsAddingTask] = useState(false)
@@ -40,18 +40,12 @@ export default function DashboardPage() {
   const upcoming = useMemo(() => getUpcomingTasks(tasks, today), [tasks, today])
   const isEmpty = subjects.length === 0 && tasks.length === 0
 
-  function handleToggle(taskId: string) {
+  async function handleToggle(taskId: string) {
     const task = tasks.find((item) => item.id === taskId)
     if (!task) return
-    const result = toggleTaskCompleted(taskId)
+    const result = await toggleTaskCompleted(taskId)
     if (!result.ok) showToast(result.error, 'error')
     else if (result.data.status === 'completed') showToast(`Completed "${task.title}"`)
-  }
-
-  function handleLoadSample() {
-    const result = loadSampleData()
-    if (result.ok) showToast('Sample data loaded')
-    else showToast(result.error, 'error')
   }
 
   return (
@@ -68,7 +62,7 @@ export default function DashboardPage() {
         <StatCard icon={CircleAlert} tone="accent" value={counts.overdue} unit="tasks" label="Overdue" href="/tasks?tab=pending&overdue=true" linkLabel={`Overdue: ${counts.overdue} tasks, view overdue tasks`} />
       </section>
 
-      {isEmpty ? <DashboardWelcome onLoadSample={handleLoadSample} /> : (
+      {isEmpty ? <DashboardWelcome /> : (
         <>
           <NextUpCard task={nextUp} subject={nextUp ? subjectsById.get(nextUp.subjectId) : undefined} today={today} onComplete={handleToggle} />
           <div className="dashboard-action-layout">

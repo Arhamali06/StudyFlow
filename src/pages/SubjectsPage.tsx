@@ -14,7 +14,7 @@ import type { Subject, SubjectDeletionStrategy } from '../types'
 
 export default function SubjectsPage() {
   useDocumentTitle('My Subjects')
-  const { subjects, tasks, deleteSubject, loadSampleData } = useAppData()
+  const { subjects, tasks, deleteSubject } = useAppData()
   const { showToast } = useToast()
 
   // Which dialog is open: creating, editing one subject, or deleting one.
@@ -26,13 +26,7 @@ export default function SubjectsPage() {
   const editingSubject = subjects.find((subject) => subject.id === editingId)
   const deletingSubject = subjects.find((subject) => subject.id === deletingId)
 
-  function handleLoadSample() {
-    const result = loadSampleData()
-    if (result.ok) showToast('Sample data loaded')
-    else showToast(result.error, 'error')
-  }
-
-  function handleDelete(subject: Subject, strategy: SubjectDeletionStrategy) {
+  async function handleDelete(subject: Subject, strategy: SubjectDeletionStrategy) {
     const taskCount = getProgressForSubject(progressMap, subject.id).total
     const taskWord = taskCount === 1 ? 'task' : 'tasks'
     const targetName =
@@ -40,7 +34,7 @@ export default function SubjectsPage() {
         ? subjects.find((other) => other.id === strategy.targetSubjectId)?.name
         : undefined
 
-    const result = deleteSubject(subject.id, strategy)
+    const result = await deleteSubject(subject.id, strategy)
     setDeletingId(null)
 
     if (!result.ok) {
@@ -79,9 +73,6 @@ export default function SubjectsPage() {
                 <Button icon={<Plus size={18} aria-hidden="true" />} onClick={() => setIsCreating(true)}>
                   Add subject
                 </Button>
-                <Button variant="secondary" onClick={handleLoadSample}>
-                  Load sample data
-                </Button>
               </div>
             }
           />
@@ -108,7 +99,7 @@ export default function SubjectsPage() {
           subject={deletingSubject}
           taskCount={getProgressForSubject(progressMap, deletingSubject.id).total}
           otherSubjects={subjects.filter((other) => other.id !== deletingSubject.id)}
-          onConfirm={(strategy) => handleDelete(deletingSubject, strategy)}
+          onConfirm={(strategy) => { void handleDelete(deletingSubject, strategy) }}
           onCancel={() => setDeletingId(null)}
         />
       )}

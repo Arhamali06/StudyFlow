@@ -1,7 +1,6 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import { BookOpen, Pencil, Trash2 } from 'lucide-react'
-import Badge from '../ui/Badge'
 import ProgressBar from '../ui/ProgressBar'
 import type { SubjectProgress } from '../../lib/statistics'
 import type { Subject } from '../../types'
@@ -44,7 +43,6 @@ export default function SubjectCard({ subject, progress, onEdit, onDelete }: Sub
 
       <div className="subject-card__heading">
         <h2 className="subject-card__name">{subject.name}</h2>
-        {subject.isSample && <Badge>Sample</Badge>}
       </div>
 
       <p className="subject-card__count">

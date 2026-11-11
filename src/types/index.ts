@@ -18,8 +18,6 @@ export interface Subject {
   name: string
   /** Hex color such as "#7b61f5". */
   color: string
-  /** True only for items created by "Load sample data". */
-  isSample?: boolean
 }
 
 export interface Task {
@@ -37,8 +35,6 @@ export interface Task {
   createdAt: string
   /** ISO timestamp of when it was completed, or null while pending. */
   completedAt: string | null
-  /** True only for items created by "Load sample data". */
-  isSample?: boolean
 }
 
 /* ----- What forms and callers send in ----- */
@@ -86,25 +82,26 @@ export type ActionResult<T = undefined> =
   | { ok: true; data: T }
   | { ok: false; error: string }
 
+export type AsyncActionResult<T = undefined> = Promise<ActionResult<T>>
+
 export interface AppDataContextValue extends AppData {
-  addSubject: (input: SubjectInput) => ActionResult<Subject>
-  updateSubject: (id: string, changes: SubjectChanges) => ActionResult<Subject>
+  loading: boolean
+  error: string | null
+  addSubject: (input: SubjectInput) => AsyncActionResult<Subject>
+  updateSubject: (id: string, changes: SubjectChanges) => AsyncActionResult<Subject>
   /** `data.affectedTasks` is how many tasks were deleted or moved. */
   deleteSubject: (
     id: string,
     strategy: SubjectDeletionStrategy,
-  ) => ActionResult<{ affectedTasks: number }>
+  ) => AsyncActionResult<{ affectedTasks: number }>
 
-  addTask: (input: TaskInput) => ActionResult<Task>
-  updateTask: (id: string, changes: TaskChanges) => ActionResult<Task>
-  deleteTask: (id: string) => ActionResult
-  toggleTaskCompleted: (id: string) => ActionResult<Task>
+  addTask: (input: TaskInput) => AsyncActionResult<Task>
+  updateTask: (id: string, changes: TaskChanges) => AsyncActionResult<Task>
+  deleteTask: (id: string) => AsyncActionResult
+  toggleTaskCompleted: (id: string) => AsyncActionResult<Task>
 
-  setUserName: (name: string) => void
-  /** Adds clearly-marked sample subjects and tasks. Never runs automatically. */
-  loadSampleData: () => ActionResult
-  /** Deletes all tasks, subjects and the saved name. The theme is kept. */
-  clearAllData: () => boolean
+  setUserName: (name: string) => AsyncActionResult<string>
+  clearAllData: () => AsyncActionResult
 }
 
 /* ----- Theme ----- */

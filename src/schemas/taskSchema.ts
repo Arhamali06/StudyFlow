@@ -11,7 +11,7 @@ import type { Task } from '../types'
 
 const timestamp = z.string().refine(isValidTimestamp, 'Invalid timestamp')
 
-/** Schema for tasks stored in app state and localStorage. */
+/** Schema for tasks returned by Supabase and used in app state. */
 export const taskSchema = z.object({
   id: z.string().min(1),
   title: z
@@ -31,7 +31,6 @@ export const taskSchema = z.object({
   status: z.enum(TASK_STATUSES),
   createdAt: timestamp,
   completedAt: timestamp.nullable().default(null),
-  isSample: z.boolean().optional(),
 }) satisfies z.ZodType<Task>
 
 /** The fields a person fills in on the task form. */

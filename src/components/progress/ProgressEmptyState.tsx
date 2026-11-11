@@ -1,13 +1,8 @@
 import { BookOpen, ListChecks } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import Button from '../ui/Button'
 import EmptyState from '../ui/EmptyState'
 
-interface ProgressEmptyStateProps {
-  onLoadSample: () => void
-}
-
-export default function ProgressEmptyState({ onLoadSample }: ProgressEmptyStateProps) {
+export default function ProgressEmptyState() {
   return (
     <div className="card">
       <EmptyState
@@ -17,7 +12,6 @@ export default function ProgressEmptyState({ onLoadSample }: ProgressEmptyStateP
         action={
           <div className="button-row">
             <Link className="btn btn--primary btn--md" to="/subjects">Add a subject</Link>
-            <Button variant="secondary" onClick={onLoadSample}>Load sample data</Button>
           </div>
         }
       />

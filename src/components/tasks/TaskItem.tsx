@@ -98,7 +98,6 @@ export default function TaskItem({
         ) : (
           <Badge tone="primary">Pending</Badge>
         )}
-        {task.isSample && <Badge>Sample</Badge>}
       </div>
 
       <span className={`task-item__due${due.isOverdue ? ' is-overdue' : ''}`}>

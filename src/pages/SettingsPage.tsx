@@ -20,34 +20,22 @@ const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
 export default function SettingsPage() {
   useDocumentTitle('Settings')
   const { theme, setTheme } = useTheme()
-  const { subjects, tasks, userName, setUserName, loadSampleData, clearAllData } = useAppData()
+  const { userName, setUserName, clearAllData } = useAppData()
   const { showToast } = useToast()
   const [isResetOpen, setIsResetOpen] = useState(false)
   const [nameDraft, setNameDraft] = useState(userName === DEFAULT_USER_NAME ? '' : userName)
 
-  function handleSaveName(event: FormEvent<HTMLFormElement>) {
+  async function handleSaveName(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setUserName(nameDraft)
-    showToast(nameDraft.trim() ? 'Display name saved.' : 'Display name cleared.')
+    const result = await setUserName(nameDraft)
+    if (result.ok) showToast(nameDraft.trim() ? 'Display name saved.' : 'Display name cleared.')
+    else showToast(result.error, 'error')
   }
 
-  function handleSampleData() {
-    const result = loadSampleData()
-    if (result.ok) {
-      showToast(
-        subjects.length || tasks.length
-          ? 'Sample data added without removing your existing data.'
-          : 'Sample data loaded.',
-      )
-    } else {
-      showToast(result.error, 'error')
-    }
-  }
-
-  function handleClearData() {
-    const stored = clearAllData()
+  async function handleClearData() {
+    const result = await clearAllData()
     setIsResetOpen(false)
-    showToast(stored ? 'All data cleared' : 'Data cleared in memory, but browser storage could not be updated.', stored ? 'success' : 'error')
+    showToast(result.ok ? 'All data cleared' : result.error, result.ok ? 'success' : 'error')
   }
 
   return (
@@ -110,9 +98,8 @@ export default function SettingsPage() {
             <Trash2 size={20} aria-hidden="true" />
             <h2 id="data-heading">Data</h2>
           </div>
-          <p className="settings-help">Manage your subjects and tasks stored in this browser.</p>
+          <p className="settings-help">Manage your subjects and tasks stored securely in your account.</p>
           <div className="settings-actions">
-            <Button variant="secondary" onClick={handleSampleData}>Load sample data</Button>
             <Button variant="danger" onClick={() => setIsResetOpen(true)}>Clear all data</Button>
           </div>
         </section>
@@ -127,8 +114,7 @@ export default function SettingsPage() {
             A personal study planner for organizing tasks, subjects, deadlines and progress.
           </p>
           <p className="settings-help">
-            Your data is stored only in this browser (localStorage). Clearing browser data or using
-            another device will not carry your tasks over.
+            Your subjects and tasks are stored securely in your StudyFlow account.
           </p>
         </section>
       </div>

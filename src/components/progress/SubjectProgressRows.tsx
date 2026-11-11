@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
-import Badge from '../ui/Badge'
 import ProgressBar from '../ui/ProgressBar'
 import type { DetailedSubjectProgress } from '../../lib/statistics'
 import type { Subject } from '../../types'
@@ -36,7 +35,6 @@ export default function SubjectProgressRows({ subjects, progressMap }: SubjectPr
               <span className="progress-subject-row__heading">
                 <span className="subject-chip__dot" aria-hidden="true" />
                 <strong>{subject.name}</strong>
-                {subject.isSample && <Badge>Sample</Badge>}
               </span>
               <span className="progress-subject-row__percent">{progress.percent}%</span>
               <span className="progress-subject-row__bar">

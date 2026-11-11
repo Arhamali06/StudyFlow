@@ -32,14 +32,14 @@ export default function CalendarPage() {
     [subjects],
   )
 
-  function handleToggle(task: Task) {
-    const result = toggleTaskCompleted(task.id)
+  async function handleToggle(task: Task) {
+    const result = await toggleTaskCompleted(task.id)
     if (!result.ok) showToast(result.error, 'error')
     else if (result.data.status === 'completed') showToast(`Completed “${task.title}”`)
   }
 
-  function handleDelete(task: Task) {
-    const result = deleteTask(task.id)
+  async function handleDelete(task: Task) {
+    const result = await deleteTask(task.id)
     setDeletingTask(undefined)
     if (result.ok) showToast(`Deleted “${task.title}”`)
     else showToast(result.error, 'error')
@@ -92,7 +92,7 @@ export default function CalendarPage() {
           title="Delete task?"
           description={`“${deletingTask.title}” will be permanently deleted. This can’t be undone.`}
           confirmLabel="Delete task"
-          onConfirm={() => handleDelete(deletingTask)}
+          onConfirm={() => { void handleDelete(deletingTask) }}
           onCancel={() => setDeletingTask(undefined)}
         />
       )}

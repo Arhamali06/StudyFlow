@@ -15,8 +15,8 @@ export default function SubjectModal({ subject, onClose }: SubjectModalProps) {
   const { subjects, addSubject, updateSubject } = useAppData()
   const { showToast } = useToast()
 
-  function handleSubmit(values: SubjectInput): string | null {
-    const result = subject ? updateSubject(subject.id, values) : addSubject(values)
+  async function handleSubmit(values: SubjectInput): Promise<string | null> {
+    const result = await (subject ? updateSubject(subject.id, values) : addSubject(values))
     if (!result.ok) return result.error
 
     showToast(subject ? `Updated “${result.data.name}”` : `Added “${result.data.name}”`)
