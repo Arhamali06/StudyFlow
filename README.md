@@ -1,14 +1,14 @@
 # StudyFlow
 
 **A personal study planner and academic progress tracker for students.**
-Organize subjects, plan tasks and deadlines, see what to do next, and track how your study habits evolve over time.
+StudyFlow helps students organize courses, plan assignments and deadlines, see what to do next, and track their academic progress over time.
 
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)
-![Frontend only](https://img.shields.io/badge/backend-none-lightgrey)
+![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e?logo=supabase&logoColor=white)
 
-<!-- TODO: add your deployed link and screenshots before publishing -->
+
 **Live demo:** https://study-flow-zeta-tawny.vercel.app/
 
 ---
@@ -20,7 +20,7 @@ Organize subjects, plan tasks and deadlines, see what to do next, and track how 
 - [Getting started](#getting-started)
 - [Project structure](#project-structure)
 - [How it works](#how-it-works)
-- [Data storage and limitations](#data-storage-and-limitations)
+- [Authentication and data](#authentication-and-data)
 - [Accessibility and responsiveness](#accessibility-and-responsiveness)
 - [Deployment](#deployment)
 - [Possible future improvements](#possible-future-improvements)
@@ -66,9 +66,20 @@ Organize subjects, plan tasks and deadlines, see what to do next, and track how 
 
 ### Settings and data
 - Light, dark or system theme (follows your OS live), saved across visits and synced between tabs, with no flash of the wrong theme on load.
-- Optional display name used in the dashboard greeting.
-- Safe **Clear all data** with a confirmation dialog.
+- Update and persist a profile display name used in the dashboard greeting.
+- Change email with Supabase confirmation, update passwords, and sign out of all sessions.
+- Export study data as JSON.
+- Safely clear all subjects and tasks while preserving the account and profile.
+- Permanently delete the account and associated data after password reauthentication.
 - Global task search from anywhere with `Ctrl/⌘ + K`.
+
+### Authentication
+- Sign up with a display name, email and password.
+- Secure login and logout with Supabase Auth.
+- Password reset and password update flows.
+- Protected application routes and public-only authentication routes.
+- Persistent sessions restored through Supabase Auth.
+- Email confirmation and email-change verification.
 
 ---
 
@@ -85,7 +96,9 @@ Organize subjects, plan tasks and deadlines, see what to do next, and track how 
 | Icons | [Lucide](https://lucide.dev) |
 | Styling | Plain CSS with design tokens (CSS custom properties), no UI framework |
 | Linting | [oxlint](https://oxc.rs/docs/guide/usage/linter) |
-| Persistence | Supabase Auth and Postgres (RLS-protected user data) |
+| Authentication | [Supabase Auth](https://supabase.com/docs/guides/auth) |
+| Database | [Supabase Postgres](https://supabase.com/docs/guides/database) with Row Level Security |
+| Edge functions | Supabase Edge Function for authenticated account deletion |
 
 ---
 
@@ -93,6 +106,7 @@ Organize subjects, plan tasks and deadlines, see what to do next, and track how 
 
 ### Prerequisites
 - A current LTS version of [Node.js](https://nodejs.org) (20.19+ or 22.12+ recommended) and npm.
+- A Supabase project with the project URL and publishable key.
 
 ### Install and run
 
@@ -105,6 +119,15 @@ npm run dev
 
 Open the URL printed in the terminal (usually `http://localhost:5173`).
 
+Create a `.env` file in the project root:
+
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+```
+
+Only the publishable key belongs in frontend environment variables. Never expose a Supabase secret or service-role key in the client.
+
 ### Scripts
 
 | Command | What it does |
@@ -115,7 +138,7 @@ Open the URL printed in the terminal (usually `http://localhost:5173`).
 | `npm run lint` | Runs oxlint |
 
 ### Try it with data
-On first launch, create an account and add your subjects and tasks. Use **Settings → Data** to export or clear your data.
+Create an account, confirm your email if required, and add your courses and tasks. Use **Settings → Data** to export or clear your study data.
 
 ---
 
@@ -125,6 +148,7 @@ On first launch, create an account and add your subjects and tasks. Use **Settin
 src/
 ├── app/                 # App shell: providers (App.tsx) and the route table (router.tsx)
 ├── components/
+│   ├── auth/            # Authentication forms, password controls and route guards
 │   ├── calendar/        # Month grid and selected-day panel
 │   ├── dashboard/       # Next up, Next 7 days, Needs attention, Today's tasks...
 │   ├── layout/          # AppLayout, Sidebar, Header, PageHeader, route error screen
@@ -132,13 +156,17 @@ src/
 │   ├── subjects/        # Subject cards, forms and the safe-delete dialog
 │   ├── tasks/           # Task rows, filters, form, drawer and modal
 │   └── ui/              # Reusable pieces: Button, Badge, Modal, FormField, ProgressBar...
-├── context/             # App data (subjects, tasks), theme and toast providers
-├── hooks/               # useAppData, useTheme, useToday, useTaskFilters, useStudyStatistics...
+├── context/             # Auth, profile, app data, theme and toast providers
+├── hooks/               # Reusable profile, auth-adjacent, data and UI hooks
 ├── lib/                 # Pure logic: dates, tasks, statistics, calendar and storage
-├── pages/               # One component per route
+├── pages/               # Auth, dashboard, planner, progress and settings routes
 ├── schemas/             # Zod schemas (the single source of truth for validation)
 ├── styles/              # tokens.css, global.css, layout.css, components.css, pages.css
-└── types/               # Shared TypeScript types
+├── types/               # Shared application and generated database types
+└── utils/               # Supabase client and authentication error helpers
+supabase/
+├── functions/           # Secure account deletion Edge Function
+└── migrations/          # Database schema, RLS and account-data migrations
 ```
 
 ---
@@ -147,6 +175,9 @@ src/
 
 ### Architecture
 - **State:** a reducer inside an `AppDataProvider` holds subjects and tasks loaded from Supabase. The profile is maintained by `ProfileProvider`; theme and toasts have their own small providers.
+- **Authentication:** `AuthProvider` restores the Supabase session and reacts to authentication events. Protected routes are rendered only for authenticated users.
+- **Profile source of truth:** the `profiles` table stores the application display name. Supabase Auth owns the account email and authentication metadata.
+- **Database security:** profiles, subjects and tasks use authenticated-user RLS policies. Sensitive account deletion uses a Supabase Edge Function with server-side credentials.
 - **Pure logic in `lib/`:** dates, filtering, sorting and all statistics are plain functions that take their inputs (including "today") as arguments, which keeps them predictable and easy to test.
 - **One source of truth for numbers:** the Dashboard and Progress pages both read from the shared `useStudyStatistics` hook, so the same figure can never be calculated two different ways.
 - **Constants drive types and validation:** task types, priorities and limits are defined once and used by both the TypeScript types and the Zod schemas.
@@ -160,18 +191,21 @@ src/
 
 ---
 
-## Data storage and limitations
+## Authentication and data
 
 StudyFlow uses a React frontend with Supabase Auth, Postgres and Row Level Security.
 
 **What this means in practice:**
 
 - **Your subjects and tasks are stored in your Supabase account** and protected by per-user RLS policies.
+- **Your profile display name is stored in the `profiles` table** and remains separate from the Supabase Auth identity metadata.
+- **Account deletion removes the Auth user and related profile, subject and task data.**
+- **Clear all data removes subjects and tasks but preserves the account and profile.**
 - **Theme preference is local to the browser** and is stored under a versioned `localStorage` key.
 - **Email changes require confirmation** through the Supabase email-change flow before the new address becomes active.
 - **Fonts:** the Plus Jakarta Sans font is loaded from Google Fonts, so a network connection is needed for that font on first load (the app falls back to system fonts otherwise).
 
-Because of these limits, StudyFlow suits personal use and portfolio demonstration rather than multi-device or collaborative scenarios (see [future improvements](#possible-future-improvements)).
+StudyFlow is designed as a personal planner. It does not currently include collaboration, sharing or role-based team workspaces.
 
 ---
 
@@ -195,6 +229,15 @@ npm run build      # outputs to dist/
 npm run preview    # check the production build locally
 ```
 
+Configure the same `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` environment variables in the hosting provider. Apply Supabase migrations before using account and data-management features:
+
+```bash
+npx supabase link --project-ref <your-project-ref>
+npx supabase db push --remote
+```
+
+The account deletion Edge Function must also be deployed and configured with Supabase-managed server secrets. Never place those secrets in frontend environment variables.
+
 Because the app uses client-side routing (`/tasks`, `/progress`, ...), the host must serve `index.html` for unknown paths, otherwise refreshing a page such as `/progress` shows a 404. This repository includes ready-made configuration:
 
 | Host | Setup |
@@ -215,16 +258,13 @@ These are deliberately **out of scope** for the current version:
 - Weekly goal ("complete 8 tasks this week") with progress on the dashboard.
 - Pomodoro / focus timer linked to tasks, with study time per subject.
 - Browser reminders for tasks due tomorrow and overdue tasks.
-- Importing exported JSON data.
 - Optional grades per task with an average per subject.
 - Recurring tasks and subtasks.
 - Installable PWA with offline support and a self-hosted font.
-- An automated test suite (unit tests for `lib/`, end-to-end tests for key flows).
+- A dedicated automated test suite (unit tests for `lib/`, end-to-end tests for key flows).
 
 ---
 
 ## Author
 
-Built by **Hassaan Waqar Butt** as a portfolio project.
-
-<!-- TODO: add links (GitHub, LinkedIn, portfolio) and choose a license, for example MIT -->
+Built by **Arham Ali** as a portfolio project.
