@@ -37,37 +37,35 @@ const emptyState: AppData = { subjects: [], tasks: [], userName: DEFAULT_USER_NA
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appDataReducer, emptyState)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isInitialLoading, setIsInitialLoading] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [dataError, setDataError] = useState<string | null>(null)
+  const [hasLoadedData, setHasLoadedData] = useState(false)
   const { user, loading: authLoading } = useAuth()
   const { showToast } = useToast()
   const requestId = useRef(0)
+  const activeUserId = useRef<string | null>(null)
+  const requestUserId = useRef<string | null>(null)
   const showToastRef = useRef(showToast)
 
   useEffect(() => {
     showToastRef.current = showToast
   }, [showToast])
 
-  useEffect(() => {
-    if (authLoading) return
+  const fetchData = useCallback(async (targetUser: NonNullable<typeof user>, background: boolean) => {
     const currentRequest = ++requestId.current
-    if (!user) {
-      dispatch({ type: 'data/replaced', state: emptyState })
-      setLoading(false)
-      setError(null)
-      return
-    }
+    requestUserId.current = targetUser.id
+    if (background) setIsRefreshing(true)
+    else setIsInitialLoading(true)
+    setDataError(null)
 
-    dispatch({ type: 'data/replaced', state: emptyState })
-    setLoading(true)
-    setError(null)
-
-    void Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-      supabase.from('subjects').select('*').eq('user_id', user.id).order('name'),
-      supabase.from('tasks').select('*').eq('user_id', user.id).order('due_date'),
-    ]).then(([profileResult, subjectsResult, tasksResult]) => {
-      if (currentRequest !== requestId.current) return
+    try {
+      const [profileResult, subjectsResult, tasksResult] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', targetUser.id).maybeSingle(),
+        supabase.from('subjects').select('*').eq('user_id', targetUser.id).order('name'),
+        supabase.from('tasks').select('*').eq('user_id', targetUser.id).order('due_date'),
+      ])
+      if (currentRequest !== requestId.current || activeUserId.current !== targetUser.id) return
       const requestError = profileResult.error ?? subjectsResult.error ?? tasksResult.error
       if (requestError) throw requestError
       const subjects = (subjectsResult.data ?? []).map(mapSubject)
@@ -75,15 +73,42 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const tasks = (tasksResult.data ?? []).map(mapTask).filter((task) => subjectIds.has(task.subjectId))
       const userName = profileResult.data ? mapProfile(profileResult.data) : DEFAULT_USER_NAME
       dispatch({ type: 'data/replaced', state: { subjects, tasks, userName } })
-      setLoading(false)
-    }).catch((requestError: unknown) => {
-      if (currentRequest !== requestId.current) return
+      setHasLoadedData(true)
+    } catch (requestError: unknown) {
+      if (currentRequest !== requestId.current || activeUserId.current !== targetUser.id) return
       const message = requestError instanceof Error ? requestError.message : 'Unable to load your study data.'
-      setError(message)
-      setLoading(false)
+      setDataError(message)
       showToastRef.current(message, 'error')
-    })
-  }, [authLoading, user])
+    } finally {
+      if (currentRequest === requestId.current && activeUserId.current === targetUser.id) {
+        setIsInitialLoading(false)
+        setIsRefreshing(false)
+        requestUserId.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (authLoading) return
+    const nextUserId = user?.id ?? null
+    if (activeUserId.current !== nextUserId) {
+      activeUserId.current = nextUserId
+      requestId.current += 1
+      requestUserId.current = null
+      dispatch({ type: 'data/replaced', state: emptyState })
+      setHasLoadedData(false)
+      setIsInitialLoading(Boolean(user))
+      setIsRefreshing(false)
+      setDataError(null)
+    }
+    if (!user || requestUserId.current === user.id || hasLoadedData) return
+    void fetchData(user, false)
+  }, [authLoading, fetchData, hasLoadedData, user])
+
+  const retry = useCallback(() => {
+    if (!user || requestUserId.current === user.id) return
+    void fetchData(user, hasLoadedData)
+  }, [fetchData, hasLoadedData, user])
 
   const addSubject = useCallback<AppDataContextValue['addSubject']>(async (input) => {
     if (!user) return failure('You must be signed in to add a subject.')
@@ -220,10 +245,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, [user])
 
   const value = useMemo<AppDataContextValue>(() => ({
-    ...state, loading, error, addSubject, updateSubject, deleteSubject, addTask, updateTask,
+    ...state, loading: isInitialLoading, error: dataError, isInitialLoading, isRefreshing, dataError,
+    hasLoadedData, retry,
+    addSubject, updateSubject, deleteSubject, addTask, updateTask,
     deleteTask, toggleTaskCompleted, setUserName, clearAllData,
-  }), [state, loading, error, addSubject, updateSubject, deleteSubject, addTask, updateTask,
-    deleteTask, toggleTaskCompleted, setUserName, clearAllData])
+  }), [state, isInitialLoading, isRefreshing, dataError, retry, addSubject, updateSubject,
+    hasLoadedData, deleteSubject, addTask, updateTask, deleteTask, toggleTaskCompleted, setUserName, clearAllData])
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
 }

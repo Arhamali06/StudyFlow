@@ -87,6 +87,11 @@ export type AsyncActionResult<T = undefined> = Promise<ActionResult<T>>
 export interface AppDataContextValue extends AppData {
   loading: boolean
   error: string | null
+  isInitialLoading: boolean
+  isRefreshing: boolean
+  dataError: string | null
+  hasLoadedData: boolean
+  retry: () => void
   addSubject: (input: SubjectInput) => AsyncActionResult<Subject>
   updateSubject: (id: string, changes: SubjectChanges) => AsyncActionResult<Subject>
   /** `data.affectedTasks` is how many tasks were deleted or moved. */

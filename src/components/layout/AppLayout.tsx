@@ -3,6 +3,13 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Header from './Header'
 import { useAppData } from '../../hooks/useAppData'
+import DashboardSkeleton from '../skeletons/DashboardSkeleton'
+import TasksSkeleton from '../skeletons/TasksSkeleton'
+import SubjectsSkeleton from '../skeletons/SubjectsSkeleton'
+import CalendarSkeleton from '../skeletons/CalendarSkeleton'
+import ProgressSkeleton from '../skeletons/ProgressSkeleton'
+import SettingsSkeleton from '../skeletons/SettingsSkeleton'
+import GenericSkeleton from '../skeletons/GenericSkeleton'
 
 const MENU_BUTTON_ID = 'app-menu-button'
 
@@ -11,9 +18,21 @@ function restoreMenuButtonFocus() {
   window.requestAnimationFrame(() => document.getElementById(MENU_BUTTON_ID)?.focus())
 }
 
+function LoadingSkeleton({ pathname }: { pathname: string }) {
+  switch (pathname.split('/')[1]) {
+    case 'dashboard': return <DashboardSkeleton />
+    case 'tasks': return <TasksSkeleton />
+    case 'subjects': return <SubjectsSkeleton />
+    case 'calendar': return <CalendarSkeleton />
+    case 'progress': return <ProgressSkeleton />
+    case 'settings': return <SettingsSkeleton />
+    default: return <GenericSkeleton />
+  }
+}
+
 export default function AppLayout() {
   const { pathname } = useLocation()
-  const { loading, error } = useAppData()
+  const { isInitialLoading, dataError, isRefreshing, hasLoadedData, retry } = useAppData()
 
   // We remember *which page* the drawer was opened on. If the page changes,
   // the drawer is automatically considered closed — no effect needed.
@@ -84,7 +103,23 @@ export default function AppLayout() {
       <div className="app-main">
         <Header onOpenMenu={openMenu} isMenuOpen={isMenuOpen} />
         <main id="main-content" className="app-content" tabIndex={-1}>
-          {loading ? <p role="status">Loading your study data…</p> : error ? <p role="alert">{error}</p> : <Outlet />}
+          {isInitialLoading ? <LoadingSkeleton pathname={pathname} /> : dataError && !hasLoadedData ? (
+            <div className="data-error" role="alert">
+              <h1>We could not load your study data</h1>
+              <p>{dataError}</p>
+              <button className="btn btn--primary btn--md" type="button" onClick={retry}>Retry</button>
+            </div>
+          ) : (
+            <>
+              {isRefreshing && <p className="refresh-indicator" role="status">Refreshing your study data…</p>}
+              {dataError && hasLoadedData && (
+                <p className="refresh-error" role="alert">
+                  {dataError} <button className="btn btn--ghost btn--sm" type="button" onClick={retry}>Retry refresh</button>
+                </p>
+              )}
+              <Outlet />
+            </>
+          )}
         </main>
       </div>
     </div>
