@@ -54,11 +54,16 @@ function DeleteAccountDialog({ onCancel, onDelete }: { onCancel: () => void; onD
     event.preventDefault()
     if (!password || confirmation !== 'DELETE' || loading) return
     setLoading(true)
-    const result = await onDelete(password)
-    setLoading(false)
-    setPassword('')
-    setConfirmation('')
-    if (result) setError(result)
+    try {
+      const result = await onDelete(password)
+      setPassword('')
+      setConfirmation('')
+      if (result) setError(result)
+    } catch {
+      setError('Unable to delete your account. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -186,7 +191,11 @@ export default function SettingsPage() {
   async function deleteAccount(password: string) {
     const reauthResult = await reauthenticate(password)
     if (reauthResult.error) return reauthResult.error
-    const { error } = await supabase.functions.invoke('delete-account')
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    if (sessionError || !session?.access_token) return 'Your session has expired. Please sign in again.'
+    const { error } = await supabase.functions.invoke('delete-account', {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
     if (error) return 'Unable to delete your account. Please try again.'
     await supabase.auth.signOut({ scope: 'local' })
     showToast('Your account was deleted.')

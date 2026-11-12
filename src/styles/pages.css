@@ -121,6 +121,42 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 22%, transparent);
 }
 
+.modal .settings-form .input {
+  min-height: 52px;
+  border: 1px solid var(--color-input-border);
+  border-radius: 16px;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  outline: 0;
+  font-size: 0.9375rem;
+}
+
+.modal .settings-form .input:focus-visible {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
+}
+
+.modal .settings-form .auth-field {
+  margin-top: 0;
+}
+
+.modal .settings-form .password-control input {
+  width: 100%;
+  height: 52px;
+  padding: 0 52px 0 16px;
+  border: 1px solid var(--color-input-border);
+  border-radius: 16px;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  outline: 0;
+  font-size: 0.9375rem;
+}
+
+.modal .settings-form .password-control input:focus {
+  border-color: var(--color-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
+}
+
 .settings-security-card .password-control button {
   right: 4px;
 }

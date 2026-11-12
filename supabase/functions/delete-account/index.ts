@@ -20,10 +20,19 @@ Deno.serve(async (request) => {
   if (!token) return json({ error: 'Authentication is required.' }, 401)
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!supabaseUrl || !serviceRoleKey) return json({ error: 'The account deletion service is not configured.' }, 500)
+  const secretKeys = Deno.env.get('SUPABASE_SECRET_KEYS')
+  if (!supabaseUrl || !secretKeys) return json({ error: 'The account deletion service is not configured.' }, 500)
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
+  let secretKey: string | undefined
+  try {
+    const parsedKeys = JSON.parse(secretKeys) as { default?: unknown }
+    if (typeof parsedKeys.default === 'string') secretKey = parsedKeys.default
+  } catch {
+    return json({ error: 'The account deletion service is not configured.' }, 500)
+  }
+  if (!secretKey) return json({ error: 'The account deletion service is not configured.' }, 500)
+
+  const admin = createClient(supabaseUrl, secretKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
   const { data: { user }, error: userError } = await admin.auth.getUser(token)
