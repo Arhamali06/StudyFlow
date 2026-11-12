@@ -120,7 +120,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      clear_my_data: { Args: never; Returns: undefined }
       clear_all_data: { Args: never; Returns: undefined }
       delete_subject: {
         Args: { p_move_to?: string; p_subject_id: string }

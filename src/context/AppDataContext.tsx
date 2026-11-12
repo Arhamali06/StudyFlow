@@ -1,7 +1,6 @@
 import { createContext, useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react'
 import { z } from 'zod'
 import { appDataReducer } from './appDataReducer'
-import { DEFAULT_USER_NAME, USER_NAME_MAX_LENGTH } from '../lib/constants'
 import { useAuth } from './authContext'
 import { useToast } from '../hooks/useToast'
 import { createId } from '../lib/ids'
@@ -9,7 +8,7 @@ import { isSubjectNameTaken } from '../lib/subjects'
 import { buildNewTask, buildUpdatedTask } from '../lib/tasks'
 import { subjectSchema } from '../schemas/subjectSchema'
 import { taskSchema } from '../schemas/taskSchema'
-import { mapProfile, mapSubject, mapTask } from '../lib/database'
+import { mapSubject, mapTask } from '../lib/database'
 import { supabase } from '../utils/supabase'
 import type { ActionResult, AppData, AppDataContextValue } from '../types'
 
@@ -33,7 +32,7 @@ function databaseError(error: { message: string }): string {
   return error.message
 }
 
-const emptyState: AppData = { subjects: [], tasks: [], userName: DEFAULT_USER_NAME }
+const emptyState: AppData = { subjects: [], tasks: [] }
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appDataReducer, emptyState)
@@ -60,19 +59,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setDataError(null)
 
     try {
-      const [profileResult, subjectsResult, tasksResult] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', targetUser.id).maybeSingle(),
+      const [subjectsResult, tasksResult] = await Promise.all([
         supabase.from('subjects').select('*').eq('user_id', targetUser.id).order('name'),
         supabase.from('tasks').select('*').eq('user_id', targetUser.id).order('due_date'),
       ])
       if (currentRequest !== requestId.current || activeUserId.current !== targetUser.id) return
-      const requestError = profileResult.error ?? subjectsResult.error ?? tasksResult.error
+      const requestError = subjectsResult.error ?? tasksResult.error
       if (requestError) throw requestError
       const subjects = (subjectsResult.data ?? []).map(mapSubject)
       const subjectIds = new Set(subjects.map((subject) => subject.id))
       const tasks = (tasksResult.data ?? []).map(mapTask).filter((task) => subjectIds.has(task.subjectId))
-      const userName = profileResult.data ? mapProfile(profileResult.data) : DEFAULT_USER_NAME
-      dispatch({ type: 'data/replaced', state: { subjects, tasks, userName } })
+      dispatch({ type: 'data/replaced', state: { subjects, tasks } })
       setHasLoadedData(true)
     } catch (requestError: unknown) {
       if (currentRequest !== requestId.current || activeUserId.current !== targetUser.id) return
@@ -222,25 +219,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     return updateTask(id, { status: existing.status === 'completed' ? 'pending' : 'completed' })
   }, [state.tasks, updateTask])
 
-  const setUserName = useCallback<AppDataContextValue['setUserName']>(async (name) => {
-    if (!user) return failure('You must be signed in to update your profile.')
-    const clean = name.trim().slice(0, USER_NAME_MAX_LENGTH) || DEFAULT_USER_NAME
-    const { data, error: requestError } = await supabase.from('profiles').update({ full_name: clean }).eq('id', user.id).select().single()
-    if (requestError) return failure(databaseError(requestError))
-    try {
-      const userName = mapProfile(data)
-      dispatch({ type: 'userName/set', name: userName })
-      return success(userName)
-    } catch (mappingError) {
-      return failure(mappingError instanceof Error ? mappingError.message : 'The saved profile was invalid.')
-    }
-  }, [user])
-
   const clearAllData = useCallback<AppDataContextValue['clearAllData']>(async () => {
     if (!user) return failure('You must be signed in to clear your data.')
-    const { error: requestError } = await supabase.rpc('clear_my_data')
+    const { error: requestError } = await supabase.rpc('clear_all_data')
     if (requestError) return failure(databaseError(requestError))
-    dispatch({ type: 'data/cleared', defaultUserName: DEFAULT_USER_NAME })
+    dispatch({ type: 'data/cleared' })
     return success(undefined)
   }, [user])
 
@@ -248,9 +231,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     ...state, loading: isInitialLoading, error: dataError, isInitialLoading, isRefreshing, dataError,
     hasLoadedData, retry,
     addSubject, updateSubject, deleteSubject, addTask, updateTask,
-    deleteTask, toggleTaskCompleted, setUserName, clearAllData,
+    deleteTask, toggleTaskCompleted, clearAllData,
   }), [state, isInitialLoading, isRefreshing, dataError, retry, addSubject, updateSubject,
-    hasLoadedData, deleteSubject, addTask, updateTask, deleteTask, toggleTaskCompleted, setUserName, clearAllData])
+    hasLoadedData, deleteSubject, addTask, updateTask, deleteTask, toggleTaskCompleted, clearAllData])
 
   return <AppDataContext.Provider value={value}>{children}</AppDataContext.Provider>
 }

@@ -91,14 +91,15 @@ export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const { showToast } = useToast()
   const [isResetOpen, setIsResetOpen] = useState(false)
-  const [isResending, setIsResending] = useState(false)
   const [newEmail, setNewEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [securityMessage, setSecurityMessage] = useState<{ text: string; error?: boolean } | null>(null)
+  const [emailMessage, setEmailMessage] = useState<{ text: string; error?: boolean } | null>(null)
+  const [passwordMessage, setPasswordMessage] = useState<{ text: string; error?: boolean } | null>(null)
   const [currentPasswordError, setCurrentPasswordError] = useState('')
-  const [securityLoading, setSecurityLoading] = useState(false)
+  const [emailLoading, setEmailLoading] = useState(false)
+  const [passwordLoading, setPasswordLoading] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const activeTabRef = useRef<HTMLAnchorElement | null>(null)
   // oxlint-disable-next-line react/incompatible-library
@@ -118,14 +119,6 @@ export default function SettingsPage() {
     else showToast(result.error, 'error')
   }
 
-  async function resendConfirmation() {
-    if (!user?.email) return
-    setIsResending(true)
-    const { error } = await supabase.auth.resend({ type: 'signup', email: user.email })
-    setIsResending(false)
-    showToast(error ? 'Unable to resend the confirmation email.' : 'Confirmation email sent.', error ? 'error' : 'success')
-  }
-
   async function handleClearData() {
     const result = await clearAllData()
     setIsResetOpen(false)
@@ -134,37 +127,41 @@ export default function SettingsPage() {
 
   async function changeEmail(event: FormEvent) {
     event.preventDefault()
-    if (!/^\S+@\S+\.\S+$/.test(newEmail.trim())) { setSecurityMessage({ text: 'Enter a valid email address.', error: true }); return }
-    setSecurityLoading(true)
+    if (!/^\S+@\S+\.\S+$/.test(newEmail.trim())) { setEmailMessage({ text: 'Enter a valid email address.', error: true }); return }
+    setEmailLoading(true)
     const result = await updateEmail(newEmail.trim())
-    setSecurityLoading(false)
-    setSecurityMessage(result.error ? { text: result.error, error: true } : { text: 'Check your new email address to confirm the change.' })
+    setEmailLoading(false)
+    setEmailMessage(result.error
+      ? { text: result.error, error: true }
+      : result.status === 'pending'
+        ? { text: 'Email change is pending. Check your new email address to confirm it.' }
+        : { text: 'Email updated successfully.' })
     if (!result.error) setNewEmail('')
   }
 
   async function changePassword(event: FormEvent) {
     event.preventDefault()
-    if (newPassword.length < 8 || !/\d/.test(newPassword)) { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setSecurityMessage({ text: 'Use at least 8 characters and one number.', error: true }); return }
-    if (newPassword !== confirmPassword) { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setSecurityMessage({ text: 'New passwords do not match.', error: true }); return }
+    if (newPassword.length < 8 || !/\d/.test(newPassword)) { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setPasswordMessage({ text: 'Use at least 8 characters and one number.', error: true }); return }
+    if (newPassword !== confirmPassword) { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); setPasswordMessage({ text: 'New passwords do not match.', error: true }); return }
     if (!user?.email) return
-    setSecurityLoading(true)
+    setPasswordLoading(true)
     const reauthResult = await reauthenticate(currentPassword)
     if (reauthResult.error) {
-      setSecurityLoading(false)
+      setPasswordLoading(false)
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
       setCurrentPasswordError(reauthResult.error)
-      setSecurityMessage({ text: reauthResult.error, error: true })
+      setPasswordMessage({ text: reauthResult.error, error: true })
       return
     }
     setCurrentPasswordError('')
     const result = await updatePassword(newPassword)
-    setSecurityLoading(false)
+    setPasswordLoading(false)
     setCurrentPassword('')
     setNewPassword('')
     setConfirmPassword('')
-    setSecurityMessage(result.error ? { text: result.error, error: true } : { text: 'Password changed successfully.' })
+    setPasswordMessage(result.error ? { text: result.error, error: true } : { text: 'Password changed successfully.' })
   }
 
   async function signOutAll() {
@@ -219,7 +216,6 @@ export default function SettingsPage() {
               <Avatar name={profile?.full_name} email={user?.email} userId={user?.id} size="profile" />
               <div className="profile-summary__copy"><h2 id="profile-heading">{profile?.full_name || 'Your profile'}</h2><p>{user?.email}</p><span className="badge badge--neutral">Member since {memberSince(profile?.created_at)}</span></div>
             </div>
-            {!user?.email_confirmed_at && <div className="settings-banner" role="status">Please confirm your email. <button type="button" className="text-button" onClick={resendConfirmation} disabled={isResending}>{isResending ? 'Sending…' : 'Resend confirmation email'}</button></div>}
             <form className="settings-form profile-form" onSubmit={handleSubmit(saveProfile)}>
               <div className="profile-form__grid">
                 <FormField id="display-name" label="Display name" error={errors.fullName?.message}>
@@ -255,11 +251,11 @@ export default function SettingsPage() {
         <div className="settings-security-column">
           <section className="card settings-card settings-security-card" aria-labelledby="email-security-heading">
             <div className="settings-card__heading"><span className="settings-card__icon"><Mail size={20} aria-hidden="true" /></span><div><h2 id="email-security-heading">Email address</h2><p className="settings-help">Your current email is <strong>{user?.email}</strong>. <span className="badge badge--success">Verified</span></p></div></div>
-            {user?.new_email && <p className="settings-banner">We sent a confirmation link to {user.new_email}. Your email changes once you confirm it. With secure email change enabled, both addresses may need to confirm. <button type="button" className="text-button" onClick={() => void supabase.auth.resend({ type: 'email_change', email: user.new_email! })}>Resend</button></p>}
             <form className="settings-form" onSubmit={changeEmail}>
               <FormField id="new-email" label="New email address"><input id="new-email" className="input" type="email" autoComplete="email" value={newEmail} onChange={(event) => setNewEmail(event.target.value)} placeholder="you@university.edu" /></FormField>
-              <div className="settings-actions"><Button type="submit" disabled={securityLoading}>{securityLoading ? 'Saving…' : 'Change email'}</Button></div>
+              <div className="settings-actions"><Button type="submit" disabled={emailLoading}>{emailLoading ? 'Saving…' : 'Change email'}</Button></div>
             </form>
+            {emailMessage && <p className={emailMessage.error ? 'auth-error' : 'auth-success'} role="status">{emailMessage.text}</p>}
           </section>
           <section className="card settings-card settings-security-card" aria-labelledby="sessions-heading">
             <div className="settings-card__heading"><span className="settings-card__icon"><Monitor size={20} aria-hidden="true" /></span><div><h2 id="sessions-heading">Sessions</h2><p className="settings-help">Sign out of StudyFlow on every device.</p></div></div>
@@ -278,10 +274,10 @@ export default function SettingsPage() {
               <PasswordInput id="settings-new-password" label="New password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
               <PasswordStrength password={newPassword} id="settings-password-strength" />
               <PasswordInput id="settings-confirm-password" label="Confirm new password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-              <div className="settings-actions"><Button type="submit" disabled={securityLoading}>{securityLoading ? 'Saving…' : 'Update password'}</Button><span className="settings-help">You'll stay signed in on this device.</span></div>
+              <div className="settings-actions"><Button type="submit" disabled={passwordLoading}>{passwordLoading ? 'Saving…' : 'Update password'}</Button><span className="settings-help">You'll stay signed in on this device.</span></div>
             </form>
+            {passwordMessage && <p className={passwordMessage.error ? 'auth-error' : 'auth-success'} role="status">{passwordMessage.text}</p>}
           </section>}
-          {securityMessage && <p className={securityMessage.error ? 'auth-error' : 'auth-success'} role="status">{securityMessage.text}</p>}
         </div>
       </div>}
       {isResetOpen && <ConfirmDialog title="Clear all data?" description="This will delete all subjects, all tasks, and any related stored app data. This cannot be undone. Your theme preference will not be deleted." confirmLabel="Clear all data" onConfirm={handleClearData} onCancel={() => setIsResetOpen(false)} />}

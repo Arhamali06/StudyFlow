@@ -74,7 +74,6 @@ export interface TaskFilterState {
 export interface AppData {
   subjects: Subject[]
   tasks: Task[]
-  userName: string
 }
 
 /** Every data action returns this, so the UI can show a message on failure. */
@@ -105,7 +104,6 @@ export interface AppDataContextValue extends AppData {
   deleteTask: (id: string) => AsyncActionResult
   toggleTaskCompleted: (id: string) => AsyncActionResult<Task>
 
-  setUserName: (name: string) => AsyncActionResult<string>
   clearAllData: () => AsyncActionResult
 }
 

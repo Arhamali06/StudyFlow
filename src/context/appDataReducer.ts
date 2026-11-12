@@ -15,8 +15,7 @@ export type AppDataAction =
   | { type: 'task/added'; task: Task }
   | { type: 'task/updated'; task: Task }
   | { type: 'task/deleted'; id: string }
-  | { type: 'userName/set'; name: string }
-  | { type: 'data/cleared'; defaultUserName: string }
+  | { type: 'data/cleared' }
   | { type: 'data/replaced'; state: AppData }
 
 export function appDataReducer(state: AppData, action: AppDataAction): AppData {
@@ -72,11 +71,8 @@ export function appDataReducer(state: AppData, action: AppDataAction): AppData {
     case 'task/deleted':
       return { ...state, tasks: state.tasks.filter((task) => task.id !== action.id) }
 
-    case 'userName/set':
-      return { ...state, userName: action.name }
-
     case 'data/cleared':
-      return { subjects: [], tasks: [], userName: state.userName || action.defaultUserName }
+      return { subjects: [], tasks: [] }
 
     case 'data/replaced':
       return action.state

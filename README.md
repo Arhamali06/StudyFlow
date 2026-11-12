@@ -67,7 +67,6 @@ Organize subjects, plan tasks and deadlines, see what to do next, and track how 
 ### Settings and data
 - Light, dark or system theme (follows your OS live), saved across visits and synced between tabs, with no flash of the wrong theme on load.
 - Optional display name used in the dashboard greeting.
-- Optional sample data to explore the app, always clearly marked as sample.
 - Safe **Clear all data** with a confirmation dialog.
 - Global task search from anywhere with `Ctrl/⌘ + K`.
 
@@ -86,7 +85,7 @@ Organize subjects, plan tasks and deadlines, see what to do next, and track how 
 | Icons | [Lucide](https://lucide.dev) |
 | Styling | Plain CSS with design tokens (CSS custom properties), no UI framework |
 | Linting | [oxlint](https://oxc.rs/docs/guide/usage/linter) |
-| Persistence | Browser `localStorage` (versioned keys, validated on read) |
+| Persistence | Supabase Auth and Postgres (RLS-protected user data) |
 
 ---
 
@@ -116,7 +115,7 @@ Open the URL printed in the terminal (usually `http://localhost:5173`).
 | `npm run lint` | Runs oxlint |
 
 ### Try it with data
-On first launch the app is empty. Open **Settings → Load sample data** to add example subjects and tasks, or use **Clear all data** to start fresh.
+On first launch, create an account and add your subjects and tasks. Use **Settings → Data** to export or clear your data.
 
 ---
 
@@ -135,7 +134,7 @@ src/
 │   └── ui/              # Reusable pieces: Button, Badge, Modal, FormField, ProgressBar...
 ├── context/             # App data (subjects, tasks), theme and toast providers
 ├── hooks/               # useAppData, useTheme, useToday, useTaskFilters, useStudyStatistics...
-├── lib/                 # Pure logic: dates, tasks, statistics, calendar, storage, sample data
+├── lib/                 # Pure logic: dates, tasks, statistics, calendar and storage
 ├── pages/               # One component per route
 ├── schemas/             # Zod schemas (the single source of truth for validation)
 ├── styles/              # tokens.css, global.css, layout.css, components.css, pages.css
@@ -147,7 +146,7 @@ src/
 ## How it works
 
 ### Architecture
-- **State:** a reducer inside an `AppDataProvider` holds subjects and tasks. Every change is written to `localStorage`. Theme and toasts have their own small providers.
+- **State:** a reducer inside an `AppDataProvider` holds subjects and tasks loaded from Supabase. The profile is maintained by `ProfileProvider`; theme and toasts have their own small providers.
 - **Pure logic in `lib/`:** dates, filtering, sorting and all statistics are plain functions that take their inputs (including "today") as arguments, which keeps them predictable and easy to test.
 - **One source of truth for numbers:** the Dashboard and Progress pages both read from the shared `useStudyStatistics` hook, so the same figure can never be calculated two different ways.
 - **Constants drive types and validation:** task types, priorities and limits are defined once and used by both the TypeScript types and the Zod schemas.
@@ -155,7 +154,7 @@ src/
 ### Design decisions
 - **Dates are local `YYYY-MM-DD` strings,** never `new Date("YYYY-MM-DD")`, which avoids the classic off-by-one-day timezone bug. Completion timestamps are converted to the user's local day.
 - **Weeks start on Sunday.**
-- **Everything shown is computed from real tasks and subjects,** never stored or faked. Sample data is optional and always marked.
+- **Everything shown is computed from the user's saved tasks and subjects,** never stored or faked.
 - **Progress date ranges** use two bases on purpose: activity metrics (on-time rate, best week, weekday productivity) look at *when tasks were completed*, while the ring, subject progress and breakdowns look at *tasks due in the window*, so upcoming work still counts as pending. Streaks and the 8-week trend always use fixed windows.
 - **Progress never lies:** partial progress is never rounded up to 100% (or down to 0%).
 
@@ -163,16 +162,13 @@ src/
 
 ## Data storage and limitations
 
-StudyFlow is a **frontend-only** application. There is no server, no database, no login and no network requests for your data.
+StudyFlow uses a React frontend with Supabase Auth, Postgres and Row Level Security.
 
 **What this means in practice:**
 
-- **Your data lives only in your browser** (`localStorage` under keys prefixed `studyflow:v1:`). Nothing is sent anywhere.
-- **It does not sync.** Tasks created on one browser or device will not appear on another.
-- **Clearing site data, using a private/incognito window, or switching browsers means starting empty.** There is no account to recover from.
-- **Storage is limited** (typically around 5 MB per site). That is far more than a planner needs, but if the browser refuses to save, the app shows a message instead of failing silently.
-- **Multiple tabs are kept in sync, but writes are last-write-wins.** Editing the same data in two tabs at the same moment can overwrite changes.
-- **If saved data is damaged or invalid,** unreadable items are skipped, a copy of the original is kept under a `:backup` key, and the app shows a message.
+- **Your subjects and tasks are stored in your Supabase account** and protected by per-user RLS policies.
+- **Theme preference is local to the browser** and is stored under a versioned `localStorage` key.
+- **Email changes require confirmation** through the Supabase email-change flow before the new address becomes active.
 - **Fonts:** the Plus Jakarta Sans font is loaded from Google Fonts, so a network connection is needed for that font on first load (the app falls back to system fonts otherwise).
 
 Because of these limits, StudyFlow suits personal use and portfolio demonstration rather than multi-device or collaborative scenarios (see [future improvements](#possible-future-improvements)).
@@ -219,12 +215,11 @@ These are deliberately **out of scope** for the current version:
 - Weekly goal ("complete 8 tasks this week") with progress on the dashboard.
 - Pomodoro / focus timer linked to tasks, with study time per subject.
 - Browser reminders for tasks due tomorrow and overdue tasks.
-- Export and import of data as JSON (a natural backup path for a `localStorage` app).
+- Importing exported JSON data.
 - Optional grades per task with an average per subject.
 - Recurring tasks and subtasks.
 - Installable PWA with offline support and a self-hosted font.
 - An automated test suite (unit tests for `lib/`, end-to-end tests for key flows).
-- Optional account and cloud sync through a backend, to lift the single-browser limitation.
 
 ---
 

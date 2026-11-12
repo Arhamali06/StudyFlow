@@ -14,17 +14,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
+    let authEventVersion = 0
 
-    void supabase.auth.getSession().then(({ data, error }) => {
+    void supabase.auth.getSession().then(async ({ data, error }) => {
       if (!active) return
+      const sessionVersion = authEventVersion
       if (error) {
         console.error('Unable to restore the Supabase session.', error)
       }
-      setSession(data.session)
+      let nextSession = data.session
+      if (nextSession) {
+        const { data: userData, error: userError } = await supabase.auth.getUser()
+        if (!active) return
+        if (userError) {
+          console.error('Unable to refresh the authenticated user.', userError)
+        } else if (userData.user) {
+          nextSession = { ...nextSession, user: userData.user }
+        }
+      }
+      if (!active || authEventVersion !== sessionVersion) return
+      setSession(nextSession)
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      authEventVersion += 1
       setSession(nextSession)
       setLoading(false)
     })
@@ -62,8 +76,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: getErrorMessage(error) }
     },
     async updateEmail(email) {
-      const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo: window.location.origin })
-      return { error: getErrorMessage(error) }
+      const { data, error } = await supabase.auth.updateUser({ email })
+      if (error) {
+        console.error('Supabase email update failed.', {
+          message: error.message,
+          name: error.name,
+          status: error.status,
+          code: error.code,
+        })
+        return { error: getErrorMessage(error) }
+      }
+
+      const requestedEmail = email.trim().toLowerCase()
+      const returnedEmail = data.user?.email?.trim().toLowerCase()
+      const pendingEmail = data.user?.new_email?.trim().toLowerCase()
+
+      if (returnedEmail === requestedEmail) {
+        if (data.user) setSession((current) => current ? { ...current, user: data.user } : current)
+        return { error: null, status: 'updated' }
+      }
+
+      if (pendingEmail === requestedEmail) {
+        if (data.user) setSession((current) => current ? { ...current, user: data.user } : current)
+        return { error: null, status: 'pending' }
+      }
+
+      console.error('Supabase email update returned an unexpected user.', {
+        requestedEmail: email,
+        returnedEmail: data.user?.email,
+        pendingEmail: data.user?.new_email,
+        emailConfirmedAt: data.user?.email_confirmed_at,
+      })
+      return { error: 'Supabase did not apply the requested email change. Please try again.' }
     },
     async reauthenticate(password) {
       if (!session?.user.email) return { error: 'Your account does not have an email identity.' }

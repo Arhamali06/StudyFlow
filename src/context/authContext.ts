@@ -1,6 +1,8 @@
 import { createContext, useContext } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 
+export type EmailUpdateStatus = 'updated' | 'pending'
+
 export interface AuthContextValue {
   user: User | null
   session: Session | null
@@ -9,7 +11,7 @@ export interface AuthContextValue {
   signUp: (name: string, email: string, password: string) => Promise<{ error: string | null }>
   requestPasswordReset: (email: string) => Promise<{ error: string | null }>
   updatePassword: (password: string) => Promise<{ error: string | null }>
-  updateEmail: (email: string) => Promise<{ error: string | null }>
+  updateEmail: (email: string) => Promise<{ error: string | null; status?: EmailUpdateStatus }>
   reauthenticate: (password: string) => Promise<{ error: string | null }>
   signOutEverywhere: () => Promise<{ error: string | null }>
   signOut: () => Promise<{ error: string | null }>

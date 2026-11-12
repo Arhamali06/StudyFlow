@@ -1,6 +1,7 @@
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../utils/supabase'
+import { DEFAULT_USER_NAME, USER_NAME_MAX_LENGTH } from '../lib/constants'
 
 export interface Profile {
   id: string
@@ -56,10 +57,12 @@ export function ProfileProvider({ user, children }: { user: User | null; childre
         return
       }
 
-      const fullName = typeof user.user_metadata.full_name === 'string' ? user.user_metadata.full_name.trim() : ''
+      const fullName = typeof user.user_metadata.full_name === 'string'
+        ? user.user_metadata.full_name.trim().slice(0, USER_NAME_MAX_LENGTH)
+        : ''
       const { data: created, error: createError } = await supabase
         .from('profiles')
-        .upsert({ id: user.id, full_name: fullName }, { onConflict: 'id' })
+        .upsert({ id: user.id, full_name: fullName || DEFAULT_USER_NAME }, { onConflict: 'id' })
         .select('id, full_name, created_at')
         .single()
       if (!active) return
