@@ -58,6 +58,7 @@ export function SignupForm() {
 
     const firstInvalid = (Object.keys(FIELD_IDS) as Field[]).find((field) => next[field])
     if (firstInvalid) {
+      setPassword('')
       focusField(FIELD_IDS[firstInvalid])
       return
     }
@@ -66,9 +67,11 @@ export function SignupForm() {
     void signUp(name, email.trim(), password).then(({ error }) => {
       setLoading(false)
       if (error) {
+        setPassword('')
         setErrors({ email: error })
         return
       }
+      setPassword('')
       setSuccess(true)
       timers.current.push(window.setTimeout(() => navigate('/login'), 1500))
     })

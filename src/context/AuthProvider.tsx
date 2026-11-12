@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../utils/supabase'
 import { AuthContext, type AuthContextValue } from './authContext'
+import { getFriendlyAuthError } from '../utils/authErrors'
 
 function getErrorMessage(error: { message: string } | null): string | null {
-  return error?.message ?? null
+  return error ? getFriendlyAuthError(error.message) : null
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -48,6 +49,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: { data: { full_name: name.trim() } },
       })
+      return { error: getErrorMessage(error) }
+    },
+    async requestPasswordReset(email) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      return { error: getErrorMessage(error) }
+    },
+    async updatePassword(password) {
+      const { error } = await supabase.auth.updateUser({ password })
+      return { error: getErrorMessage(error) }
+    },
+    async updateEmail(email) {
+      const { error } = await supabase.auth.updateUser({ email }, { emailRedirectTo: window.location.origin })
+      return { error: getErrorMessage(error) }
+    },
+    async reauthenticate(password) {
+      if (!session?.user.email) return { error: 'Your account does not have an email identity.' }
+      const { error } = await supabase.auth.signInWithPassword({ email: session.user.email, password })
+      return { error: getErrorMessage(error) }
+    },
+    async signOutEverywhere() {
+      const { error } = await supabase.auth.signOut({ scope: 'global' })
       return { error: getErrorMessage(error) }
     },
     async signOut() {

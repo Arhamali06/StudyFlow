@@ -15,18 +15,19 @@ import { useAppData } from '../hooks/useAppData'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useStudyStatistics } from '../hooks/useStudyStatistics'
 import { useToast } from '../hooks/useToast'
-import { DEFAULT_USER_NAME } from '../lib/constants'
+import { useProfile } from '../hooks/useProfile'
 import { formatDate, parseDateString } from '../lib/dates'
 import { getTodayAndOverdueTasks, getUpcomingTasks } from '../lib/statistics'
 
 export default function DashboardPage() {
   useDocumentTitle('Dashboard')
-  const { subjects, tasks, userName, toggleTaskCompleted } = useAppData()
+  const { subjects, tasks, toggleTaskCompleted } = useAppData()
+  const { profile, isLoading: isProfileLoading } = useProfile()
   const { showToast } = useToast()
   const { today, counts, nextUp, streaks } = useStudyStatistics(tasks)
   const [isAddingTask, setIsAddingTask] = useState(false)
 
-  const greeting = userName === DEFAULT_USER_NAME ? 'Hello there!' : `Hello, ${userName}!`
+  const greeting = profile?.full_name ? `Hello, ${profile.full_name}!` : 'Hello there!'
   const dateDisplay = useMemo(() => {
     const now = parseDateString(today)
     return now ? formatDate(today, now) : today
@@ -51,7 +52,7 @@ export default function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={greeting}
+        title={isProfileLoading ? 'Hello there!' : greeting}
         subtitle={dateDisplay}
         actions={!isEmpty && <StreakChip current={streaks.current} />}
       />

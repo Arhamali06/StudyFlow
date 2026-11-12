@@ -407,6 +407,9 @@ backend = "postgres"
 [experimental]
 # Configures S3 bucket URL, eg. <bucket_name>.s3-<region>.amazonaws.com
 s3_host = "env(S3_HOST)"
+
+[functions.delete-account]
+verify_jwt = true
 # Configures S3 bucket region, eg. us-east-1
 s3_region = "env(S3_REGION)"
 # Configures AWS_ACCESS_KEY_ID for S3 bucket

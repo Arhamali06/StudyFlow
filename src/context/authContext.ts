@@ -7,6 +7,11 @@ export interface AuthContextValue {
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: string | null }>
   signUp: (name: string, email: string, password: string) => Promise<{ error: string | null }>
+  requestPasswordReset: (email: string) => Promise<{ error: string | null }>
+  updatePassword: (password: string) => Promise<{ error: string | null }>
+  updateEmail: (email: string) => Promise<{ error: string | null }>
+  reauthenticate: (password: string) => Promise<{ error: string | null }>
+  signOutEverywhere: () => Promise<{ error: string | null }>
   signOut: () => Promise<{ error: string | null }>
 }
 

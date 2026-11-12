@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/authContext'
-import { useToast } from '../../hooks/useToast'
 import { focusField } from './focusField'
 import { PasswordInput } from './PasswordInput'
 
@@ -13,7 +12,6 @@ interface Errors {
 export function LoginForm() {
   const navigate = useNavigate()
   const { signIn } = useAuth()
-  const { showToast } = useToast()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [remember, setRemember] = useState(false)
@@ -34,6 +32,7 @@ export function LoginForm() {
     setErrors(next)
 
     if (next.email || next.password) {
+      setPassword('')
       focusField(next.email ? 'login-email' : 'login-password')
       return
     }
@@ -41,6 +40,7 @@ export function LoginForm() {
     const result = await signIn(email.trim(), password)
     setLoading(false)
     if (result.error) {
+      setPassword('')
       setFailed(true)
       setShaking(true)
       focusField('login-password')
@@ -107,7 +107,7 @@ export function LoginForm() {
         <button
           type="button"
           className="auth-link"
-          onClick={() => showToast("Password reset isn't available in this demo.", 'info')}
+          onClick={() => navigate('/forgot-password')}
         >
           Forgot password?
         </button>

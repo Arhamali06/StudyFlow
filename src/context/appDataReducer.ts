@@ -76,7 +76,7 @@ export function appDataReducer(state: AppData, action: AppDataAction): AppData {
       return { ...state, userName: action.name }
 
     case 'data/cleared':
-      return { subjects: [], tasks: [], userName: action.defaultUserName }
+      return { subjects: [], tasks: [], userName: state.userName || action.defaultUserName }
 
     case 'data/replaced':
       return action.state

@@ -30,7 +30,7 @@ function WeeklyBarChart() {
 interface AuthLayoutProps {
   children: ReactNode
   /** Signup is a longer form, so on phones its header stays smaller and skips the chart. */
-  variant: 'login' | 'signup'
+  variant: 'login' | 'signup' | 'forgot' | 'reset'
 }
 
 export function AuthLayout({ children, variant }: AuthLayoutProps) {

@@ -3,6 +3,8 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { LogOut, X } from 'lucide-react'
 import { useAuth } from '../../context/authContext'
 import { NAV_GROUPS } from './navigation'
+import Avatar from '../ui/Avatar'
+import { useProfile } from '../../hooks/useProfile'
 
 interface SidebarProps {
   /** Only matters on tablet/mobile, where the sidebar is a slide-in drawer. */
@@ -32,6 +34,8 @@ function BrandMark() {
 const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen, onClose, onNavigate }, ref) {
   const navigate = useNavigate()
   const { signOut } = useAuth()
+  const { profile, isLoading } = useProfile()
+  const { user } = useAuth()
 
   async function logout() {
     const { error } = await signOut()
@@ -88,6 +92,20 @@ const Sidebar = forwardRef<HTMLElement, SidebarProps>(function Sidebar({ isOpen,
       </nav>
 
       <div className="sidebar__footer">
+        {isLoading ? <div className="sidebar-account sidebar-account--skeleton" aria-hidden="true" /> : (
+          <NavLink
+            to="/settings?tab=profile"
+            className="sidebar-account"
+            onClick={onNavigate}
+            aria-label={`Your account: ${profile?.full_name || 'there'}, ${user?.email ?? ''}`}
+          >
+            <Avatar name={profile?.full_name} email={user?.email} userId={user?.id} />
+            <span className="sidebar-account__text">
+              <strong>{profile?.full_name || 'Your account'}</strong>
+              <span>{user?.email}</span>
+            </span>
+          </NavLink>
+        )}
         <button type="button" className="nav-link sidebar__logout" onClick={logout}>
           <LogOut size={22} strokeWidth={1.75} aria-hidden="true" />
           <span>Log out</span>

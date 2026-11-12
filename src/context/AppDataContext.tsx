@@ -238,7 +238,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const clearAllData = useCallback<AppDataContextValue['clearAllData']>(async () => {
     if (!user) return failure('You must be signed in to clear your data.')
-    const { error: requestError } = await supabase.rpc('clear_all_data')
+    const { error: requestError } = await supabase.rpc('clear_my_data')
     if (requestError) return failure(databaseError(requestError))
     dispatch({ type: 'data/cleared', defaultUserName: DEFAULT_USER_NAME })
     return success(undefined)

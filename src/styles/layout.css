@@ -111,6 +111,38 @@
   border-top: 1px solid var(--color-border);
 }
 
+.sidebar-account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  margin-bottom: var(--space-3);
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--color-card);
+  transition: background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sidebar-account__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar-account__text strong,
+.sidebar-account__text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-account__text strong { font-size: 0.875rem; font-weight: 600; }
+.sidebar-account__text span { color: var(--color-ink-muted); font-size: 0.75rem; }
+.sidebar-account:hover { background: var(--color-skeleton); }
+.sidebar-account:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 0; }
+.sidebar-account:active { transform: scale(0.99); }
+.sidebar-account--skeleton { height: 3.5rem; background: var(--color-skeleton); }
+
 .sidebar__logout {
   width: 100%;
   border: 0;

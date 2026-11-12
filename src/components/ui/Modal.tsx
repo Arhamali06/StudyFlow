@@ -7,6 +7,7 @@ interface ModalProps {
   children: ReactNode
   /** Width of the dialog. */
   size?: 'sm' | 'md'
+  role?: 'dialog' | 'alertdialog'
 }
 
 /**
@@ -16,7 +17,7 @@ interface ModalProps {
  * Mount it only while it should be visible: `{isOpen && <Modal ... />}`.
  * Put `data-autofocus` on the element that should receive focus first.
  */
-export default function Modal({ title, onClose, children, size = 'md' }: ModalProps) {
+export default function Modal({ title, onClose, children, size = 'md', role = 'dialog' }: ModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const pressStartedOnBackdrop = useRef(false)
   const titleId = useId()
@@ -42,6 +43,7 @@ export default function Modal({ title, onClose, children, size = 'md' }: ModalPr
     <dialog
       ref={dialogRef}
       className={`modal modal--${size}`}
+      role={role}
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault() // we close it ourselves so React stays in control

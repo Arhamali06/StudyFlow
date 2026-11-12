@@ -21,6 +21,7 @@
 
   /* Lines */
   --color-border: #e6e6ea;
+  --color-input-border: #8f8f98;
 
   /* Brand accents (taken from the reference: purple + orange + black) */
   --color-primary: #775eee; /* 4.5:1 on white, so white-on-primary text passes AA */
@@ -28,6 +29,7 @@
   --color-primary-300: #a594f9;
   --color-primary-200: #cfc7fb;
   --color-primary-soft: #efebfe;
+  --color-avatar-ink: #5b3fd9;
   --color-on-primary: #ffffff;
   --color-accent: #ff9500;
   --color-on-accent: #111113; /* text on orange: 8.6:1 (white on orange is only 2.2:1) */
@@ -109,12 +111,14 @@
   --color-ink-subtle: #878791;
 
   --color-border: #2c2c34;
+  --color-input-border: #6f6f7a;
 
   --color-primary: #8c76ff;
   --color-primary-hover: #a08dff;
   --color-primary-300: #6d58d6;
   --color-primary-200: #4a3d94;
   --color-primary-soft: #2a2447;
+  --color-avatar-ink: #a08dff;
   --color-on-primary: #ffffff;
   --color-accent-soft: #3a2a10;
 

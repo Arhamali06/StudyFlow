@@ -11,11 +11,15 @@ import RouteError from '../components/layout/RouteError'
 import LoginPage from '../pages/LoginPage'
 import SignupPage from '../pages/SignupPage'
 import { PublicOnly, RequireAuth } from '../components/auth/RouteGuards'
+import ForgotPasswordPage from '../pages/ForgotPasswordPage'
+import ResetPasswordPage from '../pages/ResetPasswordPage'
 
 export const router = createBrowserRouter([
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { element: <PublicOnly />, children: [
     { path: '/login', element: <LoginPage /> },
     { path: '/signup', element: <SignupPage /> },
+    { path: '/forgot-password', element: <ForgotPasswordPage /> },
   ] },
   { element: <RequireAuth />, children: [{ path: '/', element: <Navigate to="/dashboard" replace /> }, {
     element: <AppLayout />,
