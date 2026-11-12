@@ -267,4 +267,4 @@ These are deliberately **out of scope** for the current version:
 
 ## Author
 
-Built by **Arham Ali** as a portfolio project.
+Built by **Arham Ali** .
