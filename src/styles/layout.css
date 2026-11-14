@@ -98,10 +98,10 @@
   background: color-mix(in srgb, var(--color-card) 55%, transparent);
 }
 
-/* The active page is a white pill, like the reference */
+/* Keep the active route distinct from the unchanged hover state in both themes. */
 .nav-link.active {
-  background: var(--color-card);
-  color: var(--color-ink);
+  background: var(--color-nav-active-bg);
+  color: var(--color-nav-active-text);
 }
 
 /* Log out lives at the very bottom of the sidebar, separated from the page links. */
@@ -233,10 +233,6 @@
   .sidebar.is-open {
     transform: translateX(0);
     visibility: visible;
-  }
-
-  .nav-link.active {
-    background: var(--color-panel);
   }
 
   .sidebar .sidebar__close,

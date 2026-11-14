@@ -12,6 +12,14 @@
   --color-card-dark: #121214; /* the dark highlight card */
   --color-on-dark: #ffffff;
   --color-on-dark-muted: #b4b4bc;
+  --color-nav-active-bg: #111113;
+  --color-nav-active-text: #ffffff;
+  --color-streak-bg: #111113;
+  --color-streak-text: #ffffff;
+  --color-tab-active-bg: #111113;
+  --color-tab-active-text: #ffffff;
+  --color-tab-active-count-bg: #ffffff;
+  --color-tab-active-count-text: #111113;
   --color-skeleton: #efeff2; /* empty chart bars, placeholders */
 
   /* Text */
@@ -104,6 +112,14 @@
   --color-card-dark: #0a0a0c;
   --color-on-dark: #f5f5f7;
   --color-on-dark-muted: #a1a1ab;
+  --color-nav-active-bg: #ffffff;
+  --color-nav-active-text: #111113;
+  --color-streak-bg: #ffffff;
+  --color-streak-text: #111113;
+  --color-tab-active-bg: #ffffff;
+  --color-tab-active-text: #111113;
+  --color-tab-active-count-bg: var(--color-panel);
+  --color-tab-active-count-text: #ffffff;
   --color-skeleton: #2a2a31;
 
   --color-ink: #f4f4f6;
